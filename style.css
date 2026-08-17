@@ -79,13 +79,22 @@ body {
 }
 
 /* Заголовки и крупные элементы – жирнее */
-h1, .shop-title, .column-title, .career-info,
-#counter, .cps-display, .click-power-display {
+h1,
+.shop-title,
+.column-title,
+.career-info,
+#counter,
+.cps-display,
+.click-power-display {
   font-weight: 700;
 }
 
 /* Кнопки – полужирные */
-button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
+button,
+.upgrade-btn,
+.coffee-btn,
+.prestige-btn,
+.cheat-btn,
 .quantity-btn {
   font-weight: 500;
 }
@@ -102,16 +111,20 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   color: var(--text-secondary);
   margin-bottom: 15px;
 }
+
 .click-power-display {
   font-size: 18px;
   color: var(--text-secondary);
   margin-bottom: 10px;
 }
+
 .stress-display {
   font-size: 16px;
   margin-bottom: 10px;
-  color: #d9534f; /* остаётся красным для интуитивности */
+  color: #d9534f;
+  /* остаётся красным для интуитивности */
 }
+
 .stress-bar {
   width: 300px;
   height: 20px;
@@ -120,6 +133,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   margin: 0 auto 15px;
   overflow: hidden;
 }
+
 .stress-fill {
   height: 100%;
   background: var(--stress-fill-bg);
@@ -139,9 +153,47 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   transition: 0.05s;
   margin-bottom: 20px;
 }
+
 #clickButton:active {
   transform: translateY(4px);
   box-shadow: none;
+}
+
+/* Всплывающий текст при клике */
+.floating-text {
+    position: fixed;
+    pointer-events: none;
+    font-weight: 700;
+    font-size: 28px;
+    color: #d87518;                  /* яркий белый */
+    text-shadow: 
+        0 0 10px rgba(0, 0, 0, 0.8), /* тень для контраста */
+        0 0 20px rgba(0, 0, 0, 0.5),
+        0 0 4px #000000;            /* лёгкая обводка */
+    z-index: 10000;
+    animation: floatUp 1.2s ease-out forwards;
+    user-select: none;
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-90px) scale(1.3);
+  }
+}
+
+/* Для мобильных устройств размер шрифта чуть меньше */
+@media (max-width: 600px) {
+  .floating-text {
+    font-size: 22px;
+  }
 }
 
 /* ===== ВЫБОР КОЛИЧЕСТВА ПОКУПКИ ===== */
@@ -152,6 +204,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   justify-content: center;
   gap: 6px;
 }
+
 .quantity-btn {
   font-size: 15px;
   padding: 10px 18px;
@@ -163,6 +216,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   color: var(--text-primary);
   transition: background 0.2s, color 0.2s;
 }
+
 .quantity-btn.active {
   background-color: var(--btn-active-bg);
   color: var(--btn-active-text);
@@ -178,6 +232,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   box-shadow: var(--card-shadow);
   transition: background 0.3s, box-shadow 0.3s;
 }
+
 .shop-title {
   font-size: 24px;
   margin-bottom: 15px;
@@ -185,6 +240,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   border-bottom: 2px solid var(--border-color);
   padding-bottom: 10px;
 }
+
 .shop-item {
   display: flex;
   justify-content: space-between;
@@ -193,6 +249,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   flex-wrap: wrap;
   color: var(--text-primary);
 }
+
 .upgrade-btn {
   font-size: 14px;
   padding: 8px 12px;
@@ -203,10 +260,12 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   cursor: pointer;
   min-width: 200px;
 }
+
 .upgrade-btn:disabled {
   background-color: var(--upgrade-btn-disabled);
   cursor: not-allowed;
 }
+
 .item-info {
   text-align: left;
   font-size: 14px;
@@ -215,10 +274,12 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   margin-right: 10px;
   line-height: 1.5;
 }
+
 .source-cps {
   font-size: 12px;
   color: var(--text-muted);
 }
+
 .coffee-btn {
   font-size: 14px;
   padding: 8px 12px;
@@ -229,6 +290,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   cursor: pointer;
   margin-left: 5px;
 }
+
 .prestige-btn {
   font-size: 16px;
   padding: 10px 20px;
@@ -239,11 +301,13 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   cursor: pointer;
   margin-top: 10px;
 }
+
 .prestige-info {
   margin-top: 10px;
   font-size: 14px;
   color: var(--text-secondary);
 }
+
 .career-info {
   margin: 10px 0;
   font-size: 16px;
@@ -261,10 +325,12 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   text-align: center;
   color: var(--cheat-text);
 }
+
 .cheat-section h3 {
   margin-top: 0;
   color: var(--cheat-text);
 }
+
 .cheat-section input {
   width: 80px;
   padding: 6px;
@@ -275,6 +341,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   background: var(--bg-secondary);
   color: var(--text-primary);
 }
+
 .cheat-btn {
   font-size: 16px;
   padding: 6px 20px;
@@ -286,14 +353,17 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   margin-left: 8px;
   color: #000;
 }
+
 .cheat-btn:hover {
   background-color: #e0a800;
 }
+
 .cheat-info {
   margin-top: 10px;
   font-size: 14px;
   color: var(--text-secondary);
 }
+
 .cheat-info span {
   font-weight: bold;
   color: var(--text-primary);
@@ -305,12 +375,14 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   gap: 20px;
   flex-wrap: wrap;
 }
+
 .shop-column-left,
 .shop-column-right,
 .shop-column-upgrades {
   flex: 1 1 30%;
   min-width: 260px;
 }
+
 .column-title {
   font-size: 18px;
   font-weight: bold;
@@ -319,7 +391,9 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 4px;
 }
+
 @media (max-width: 900px) {
+
   .shop-column-left,
   .shop-column-right,
   .shop-column-upgrades {
@@ -343,6 +417,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   font-size: 14px;
   color: var(--text-primary);
 }
+
 .coffee-effect-bar {
   width: 100%;
   height: 20px;
@@ -352,11 +427,13 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   margin: 4px auto;
   transition: opacity 0.3s;
 }
+
 #coffeeEffectFill {
   height: 100%;
   width: 0%;
   transition: width 0.2s, background-color 0.3s;
 }
+
 #coffeeEffectContainer {
   transition: opacity 0.3s;
   background: var(--bg-secondary);
@@ -373,6 +450,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   justify-content: center;
   margin-top: 10px;
 }
+
 .upgrade-square {
   width: 90px;
   height: 90px;
@@ -388,20 +466,24 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   user-select: none;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.3s, border-color 0.3s;
 }
+
 .upgrade-square:hover {
   border-color: var(--text-muted);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+
 .upgrade-square.purchased {
   background: #4caf50;
   border-color: #2e7d32;
   opacity: 0.7;
   cursor: default;
 }
+
 .upgrade-square .upgrade-icon {
   line-height: 1;
   pointer-events: none;
 }
+
 .upgrade-square.pressed {
   transform: scale(0.88);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
@@ -423,20 +505,24 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   line-height: 1.4;
   border: 1px solid var(--tooltip-border);
 }
+
 #upgradeTooltip .tooltip-name {
   font-weight: bold;
   font-size: 15px;
   margin-bottom: 2px;
 }
+
 #upgradeTooltip .tooltip-desc {
   font-size: 13px;
   margin-bottom: 4px;
   color: var(--tooltip-text);
 }
+
 #upgradeTooltip .tooltip-price {
   color: #ffd700;
   font-weight: bold;
 }
+
 #upgradeTooltip .tooltip-status {
   font-size: 12px;
   color: #aaa;
@@ -448,21 +534,25 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
     padding: 10px 8px;
     margin-top: 10px;
   }
+
   #counter {
     font-size: 36px;
     margin: 6px 0;
   }
+
   .cps-display,
   .click-power-display,
   .stress-display,
   .career-info {
     font-size: 14px;
   }
+
   .stress-bar {
     width: 100%;
     max-width: 300px;
     height: 16px;
   }
+
   #clickButton {
     font-size: 24px;
     padding: 18px 30px;
@@ -480,6 +570,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
     margin-bottom: 16px;
     padding: 0 4px;
   }
+
   .quantity-btn {
     font-size: 16px;
     padding: 12px 0;
@@ -491,6 +582,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
     border: 1px solid var(--border-color);
     color: var(--text-primary);
   }
+
   .quantity-btn.active {
     background-color: var(--btn-active-bg);
     color: var(--btn-active-text);
@@ -501,43 +593,51 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
     flex-direction: column;
     gap: 10px;
   }
+
   .shop-column-left,
   .shop-column-right,
   .shop-column-upgrades {
     flex: 1 1 100%;
     min-width: 0;
   }
+
   .shop-item {
     flex-direction: column;
     align-items: stretch;
     padding: 12px 8px;
     border-bottom: 1px solid var(--border-color);
   }
+
   .item-info {
     margin-right: 0;
     margin-bottom: 8px;
     font-size: 13px;
   }
-  .shop-item > div:last-child {
+
+  .shop-item>div:last-child {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
   }
+
   .upgrade-btn {
     font-size: 13px;
     padding: 10px 12px;
     min-width: 140px;
     flex: 1 1 auto;
   }
+
   #upgradesContainer {
     gap: 8px;
   }
+
   .upgrade-square {
     width: 64px;
     height: 64px;
     font-size: 32px;
     border-radius: 10px;
   }
+
   .coffee-btn {
     font-size: 14px;
     padding: 10px 14px;
@@ -546,27 +646,33 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
     margin: 6px auto;
     display: block;
   }
+
   #coffeeEffectContainer {
     max-width: 100%;
     margin: 6px 0;
   }
+
   .prestige-btn {
     font-size: 15px;
     padding: 12px 20px;
     width: 90%;
   }
+
   .cheat-section {
     padding: 12px;
     margin: 12px 0;
   }
+
   .cheat-section input {
     width: 60px;
     padding: 8px;
   }
+
   .cheat-btn {
     padding: 8px 16px;
     font-size: 14px;
   }
+
   .item-info strong span[id$="Icon"] {
     font-size: 24px !important;
     padding: 4px 10px !important;
@@ -583,6 +689,7 @@ button,
 #clickButton {
   touch-action: manipulation;
 }
+
 * {
   -webkit-tap-highlight-color: transparent;
 }
@@ -603,6 +710,7 @@ button,
   z-index: 999;
   transition: background 0.3s, color 0.3s;
 }
+
 .theme-toggle:hover {
   background: var(--bg-secondary);
 }

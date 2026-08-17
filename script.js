@@ -338,11 +338,13 @@ class Game {
         ];
         this.upgrades = upgradeDefs.map(u => ({ ...u, purchased: false, revealed: false }));
     }
+
     getStressIncomeMultiplier() {
         if (this.stress > 70) return 0.5;
         if (this.stress > 30) return 0.8;
         return 1.0;
     }
+
     computeEmergenceMultiplier() {
         const emergenceUpgrade = this.upgrades.find(u => u.id === 'emergence');
         if (!emergenceUpgrade || !emergenceUpgrade.purchased) {
@@ -357,6 +359,7 @@ class Game {
         }
         this.emergenceMultiplier = 1 + Math.floor(totalLevels / 100) * 0.01;
     }
+
     computeEmergence2Multiplier() {
         const upgrade = this.upgrades.find(u => u.id === 'emergence2');
         if (!upgrade || !upgrade.purchased) {
@@ -371,6 +374,7 @@ class Game {
         // +1% за каждое улучшение (т.е. множитель 0.01 за штуку)
         this.emergence2Multiplier = 1 + totalUpgrades * 0.01;
     }
+
     computeCoachMultiplier() {
         const coachUpgrade = this.upgrades.find(u => u.id === 'coach');
         if (!coachUpgrade || !coachUpgrade.purchased) {
@@ -388,6 +392,7 @@ class Game {
 
         this.coachMultiplier = 1 + bonus;
     }
+
     cacheDOM() {
         this.dom = {
             counter: document.getElementById('counter'),
@@ -550,7 +555,8 @@ class Game {
     }
 
     bindEvents() {
-        this.dom.clickButton.addEventListener('click', () => this.handleClick());
+        // +++ ИЗМЕНЕНО: передаём событие в handleClick +++
+        this.dom.clickButton.addEventListener('click', (e) => this.handleClick(e));
         this.dom.coffeeButton.addEventListener('click', () => this.drinkCoffee());
         this.dom.prestigeButton.addEventListener('click', () => this.prestige());
         this.dom.cheatButton.addEventListener('click', () => this.applyCheat());
@@ -676,7 +682,36 @@ class Game {
         }
     }
 
-    handleClick() {
+    // +++ НОВЫЙ МЕТОД: отображение всплывающего текста +++
+    showFloatingText(x, y, text) {
+        // Если координаты не переданы, берём центр кнопки
+        if (x === undefined || y === undefined) {
+            const rect = this.dom.clickButton.getBoundingClientRect();
+            x = rect.left + rect.width / 2;
+            y = rect.top - 10;
+        }
+
+        const el = document.createElement('div');
+        el.className = 'floating-text';
+        el.textContent = text;
+
+        // Небольшое случайное смещение, чтобы текст не накладывался
+        const offsetX = (Math.random() - 0.5) * 60;
+        const offsetY = (Math.random() - 0.5) * 30;
+
+        el.style.left = (x + offsetX) + 'px';
+        el.style.top = (y + offsetY) + 'px';
+
+        document.body.appendChild(el);
+
+        // Удаляем элемент после завершения анимации
+        setTimeout(() => {
+            if (el.parentNode) el.parentNode.removeChild(el);
+        }, 1200);
+    }
+
+    // +++ ИЗМЕНЕНО: убран двойной штраф, добавлен вызов всплывающего текста +++
+    handleClick(event) {
         const now = Date.now();
         if (now - this.lastClickTime < 25) {
             this.dom.clickButton.style.transform = 'scale(0.95)';
@@ -687,34 +722,41 @@ class Game {
 
         if (this.stress >= 100) return;
 
-        let incomeMultiplier = 1;
-        if (this.stress > 70) incomeMultiplier = 0.5;
-        else if (this.stress > 30) incomeMultiplier = 0.8;
+        // clickPower уже учитывает все множители и штраф от стресса
+        const power = this.clickPower;
 
-        this.count += this.clickPower * incomeMultiplier;
+        this.count += power;
 
+        // Опыт
         const course = this.buildings.get('course');
         const courseLvl = course ? course.level : 0;
-
-        this.computeCoachMultiplier(); // пересчитываем множитель перед использованием
+        this.computeCoachMultiplier();
         this.experience += (1 + courseLvl) * this.cheat.exp * this.coachMultiplier;
         this.checkCareerAdvancement();
 
-        const stressMult = this.getStressAccumulationMultiplier();
-        let stressGain = 0.5 * stressMult;
-
+        // Стресс
+        let stressGain = 0.5 * this.getStressAccumulationMultiplier();
         const resistUpgrade = this.upgrades.find(u => u.id === 'stressResist1');
         if (resistUpgrade && resistUpgrade.purchased) {
             stressGain *= 0.7;
         }
-
         this.stress = Math.min(100, this.stress + stressGain);
-
         if (this.stress >= 100 && !this.hasReached100Stress) {
             this.hasReached100Stress = true;
         }
 
+        // Обновляем UI (пересчитывает clickPower для следующих кликов)
         this.updateUI();
+
+        // Показываем всплывающий текст с силой клика (форматируем число)
+        const formatted = '+' + formatNumber(power);
+        if (event) {
+            // Если есть событие мыши – используем его координаты
+            this.showFloatingText(event.clientX, event.clientY, formatted);
+        } else {
+            // Для мобильных или тестов – центр кнопки
+            this.showFloatingText(undefined, undefined, formatted);
+        }
     }
 
     drinkCoffee() {
@@ -1054,6 +1096,7 @@ class Game {
         }
     }
 
+    // +++ ИЗМЕНЕНО: убран двойной штраф для пассивного дохода +++
     gameLoop() {
         try {
             const now = Date.now();
@@ -1085,10 +1128,8 @@ class Game {
             }
 
             if (this.stress < 100) {
-                let incomeMultiplier = 1;
-                if (this.stress > 70) incomeMultiplier = 0.5;
-                else if (this.stress > 30) incomeMultiplier = 0.8;
-                this.count += this.passiveIncome * delta * incomeMultiplier;
+                // passiveIncome уже включает штраф от стресса
+                this.count += this.passiveIncome * delta;
             }
 
             this.updateStress(delta);
