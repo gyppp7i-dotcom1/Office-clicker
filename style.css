@@ -335,166 +335,134 @@ body {
     color: #aaa;
 }
 
-/* ===== МОБИЛЬНАЯ АДАПТАЦИЯ ===== */
-@media (max-width: 768px) {
-    body {
-        margin: 10px;
-        padding: 0;
-    }
+/* ========================================================== */
+/* ===== МОБИЛЬНАЯ АДАПТАЦИЯ (добавлено) ==================== */
+/* ========================================================== */
+@media (max-width: 600px) {
+  body {
+    padding: 10px 8px;
+    margin-top: 10px;
+  }
+  #counter {
+    font-size: 36px;
+    margin: 6px 0;
+  }
+  .cps-display, .click-power-display, .stress-display, .career-info {
+    font-size: 14px;
+  }
+  .stress-bar {
+    width: 100%;
+    max-width: 300px;
+    height: 16px;
+  }
 
-    h1 {
-        font-size: 24px;
-        margin: 10px 0;
-    }
+  #clickButton {
+    font-size: 24px;
+    padding: 18px 30px;
+    width: 90%;
+    max-width: 320px;
+    border-radius: 40px;
+    margin-bottom: 16px;
+  }
 
-    #counter {
-        font-size: 36px;
-    }
+  .quantity-btn {
+    font-size: 14px;
+    padding: 10px 14px;
+    margin: 3px;
+  }
+  .quantity-selector {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
 
-    .cps-display, .click-power-display, .stress-display, .career-info {
-        font-size: 14px;
-    }
+  .shop-columns {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .shop-column-left,
+  .shop-column-right,
+  .shop-column-upgrades {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .shop-item {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 8px;
+    border-bottom: 1px solid #eee;
+  }
+  .item-info {
+    margin-right: 0;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .shop-item > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .upgrade-btn {
+    font-size: 13px;
+    padding: 10px 12px;
+    min-width: 140px;
+    flex: 1 1 auto;
+  }
 
-    .stress-bar {
-        width: 100%;
-        max-width: 300px;
-        height: 18px;
-    }
+  #upgradesContainer {
+    gap: 8px;
+  }
+  .upgrade-square {
+    width: 64px;
+    height: 64px;
+    font-size: 32px;
+    border-radius: 10px;
+  }
 
-    #clickButton {
-        font-size: 24px;
-        padding: 18px 30px;
-        width: 90%;
-        max-width: 300px;
-        margin: 10px auto;
-        display: block;
-        border-radius: 40px;
-    }
+  .coffee-btn {
+    font-size: 14px;
+    padding: 10px 14px;
+    width: 90%;
+    max-width: 300px;
+    margin: 6px auto;
+    display: block;
+  }
+  #coffeeEffectContainer {
+    max-width: 100%;
+    margin: 6px 0;
+  }
 
-    .coffee-btn {
-        font-size: 16px;
-        padding: 12px 20px;
-        width: 90%;
-        max-width: 300px;
-        margin: 8px auto;
-        display: block;
-    }
+  .prestige-btn {
+    font-size: 15px;
+    padding: 12px 20px;
+    width: 90%;
+  }
+  .cheat-section {
+    padding: 12px;
+    margin: 12px 0;
+  }
+  .cheat-section input {
+    width: 60px;
+    padding: 8px;
+  }
+  .cheat-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
 
-    .quantity-selector {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 6px;
-        margin: 10px 0;
-    }
-    .quantity-btn {
-        font-size: 14px;
-        padding: 6px 12px;
-        min-width: 44px;
-        flex: 0 1 auto;
-    }
-
-    .shop-container {
-        padding: 12px;
-        border-radius: 12px;
-    }
-
-    .shop-columns {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .shop-column-left,
-    .shop-column-right,
-    .shop-column-upgrades {
-        flex: 1 1 100%;
-        min-width: 0;
-    }
-
-    .shop-item {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 8px 0;
-        border-bottom: 1px solid #eee;
-        margin-bottom: 8px;
-    }
-    .shop-item .item-info {
-        font-size: 13px;
-        margin-right: 0;
-        margin-bottom: 6px;
-        text-align: center;
-    }
-    .shop-item .item-info strong {
-        font-size: 15px;
-    }
-    .shop-item .item-info span[id$="Icon"] {
-        font-size: 28px !important;
-        padding: 4px 10px !important;
-    }
-
-    .upgrade-btn {
-        font-size: 14px;
-        padding: 10px 12px;
-        min-width: 160px;
-        width: 100%;
-        text-align: center;
-        margin: 3px 0;
-    }
-    .shop-item > div[style*="display:flex"] {
-        flex-direction: column;
-        gap: 6px;
-        align-items: stretch;
-    }
-
-    /* Квадратики улучшений */
-    .upgrade-square {
-        width: 70px;
-        height: 70px;
-        font-size: 34px;
-    }
-    #upgradesContainer {
-        gap: 8px;
-        justify-content: center;
-    }
-
-    /* Престиж */
-    .prestige-btn {
-        font-size: 16px;
-        padding: 12px 18px;
-        width: 100%;
-        max-width: 300px;
-        margin: 10px auto;
-    }
-
-    /* Чит-блок */
-    .cheat-section {
-        padding: 12px;
-    }
-    .cheat-section input {
-        width: 70px;
-        font-size: 14px;
-    }
-    .cheat-btn {
-        font-size: 14px;
-        padding: 6px 16px;
-        margin-left: 0;
-        margin-top: 6px;
-        display: inline-block;
-    }
-    .cheat-info {
-        font-size: 13px;
-    }
-
-    /* Эффекты кофе */
-    .coffee-effect-bar {
-        height: 16px;
-    }
-    #coffeeEffectContainer {
-        max-width: 100%;
-    }
-
-    /* Убираем лишние отступы */
-    .column-title {
-        font-size: 16px;
-        margin-top: 12px;
-    }
+  .item-info strong span[id$="Icon"] {
+    font-size: 24px !important;
+    padding: 4px 10px !important;
+  }
+}
+/* Отключаем масштабирование по двойному тапу для всех кнопок и кликабельных элементов */
+button,
+.upgrade-square,
+.quantity-btn,
+.coffee-btn,
+.prestige-btn,
+.cheat-btn,
+#clickButton {
+    touch-action: manipulation;
 }
