@@ -144,18 +144,24 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   box-shadow: none;
 }
 
+/* ===== ВЫБОР КОЛИЧЕСТВА ПОКУПКИ ===== */
 .quantity-selector {
   margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
 }
 .quantity-btn {
-  font-size: 16px;
-  padding: 8px 16px;
-  margin: 0 5px;
+  font-size: 15px;
+  padding: 10px 18px;
+  margin: 0;
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
   color: var(--text-primary);
+  transition: background 0.2s, color 0.2s;
 }
 .quantity-btn.active {
   background-color: var(--btn-active-bg);
@@ -332,7 +338,11 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   vertical-align: middle;
 }
 
-/* Эффекты кофе */
+/* Эффекты кофе – исправлен цвет текста */
+#coffeeEffectLabel {
+  font-size: 14px;
+  color: var(--text-primary);
+}
 .coffee-effect-bar {
   width: 100%;
   height: 20px;
@@ -342,16 +352,6 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   margin: 4px auto;
   transition: opacity 0.3s;
 }
-#coffeeEffectLabel {
-  font-size: 14px;
-  color: var(--text-primary);
-}
-#coffeeEffectContainer {
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  padding: 4px 10px;
-  box-shadow: var(--card-shadow);
-}
 #coffeeEffectFill {
   height: 100%;
   width: 0%;
@@ -359,6 +359,10 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
 }
 #coffeeEffectContainer {
   transition: opacity 0.3s;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 4px 10px;
+  box-shadow: var(--card-shadow);
 }
 
 /* Квадратики улучшений */
@@ -467,17 +471,32 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
     border-radius: 40px;
     margin-bottom: 16px;
   }
-  .quantity-btn {
-    font-size: 14px;
-    padding: 10px 14px;
-    margin: 3px;
-  }
+
+  /* ===== УЛУЧШЕННЫЕ КНОПКИ ВЫБОРА КОЛИЧЕСТВА ===== */
   .quantity-selector {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 4px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+    padding: 0 4px;
   }
+  .quantity-btn {
+    font-size: 16px;
+    padding: 12px 0;
+    margin: 0;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+  }
+  .quantity-btn.active {
+    background-color: var(--btn-active-bg);
+    color: var(--btn-active-text);
+    border-color: var(--btn-active-bg);
+  }
+
   .shop-columns {
     flex-direction: column;
     gap: 10px;
@@ -554,6 +573,7 @@ button, .upgrade-btn, .coffee-btn, .prestige-btn, .cheat-btn,
   }
 }
 
+/* Отключаем масштабирование по двойному тапу */
 button,
 .upgrade-square,
 .quantity-btn,
@@ -567,7 +587,7 @@ button,
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Дополнительно: кнопка переключения темы (добавим в HTML) */
+/* Кнопка переключения темы (фиксированная) */
 .theme-toggle {
   position: fixed;
   top: 10px;

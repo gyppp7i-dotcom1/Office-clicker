@@ -338,7 +338,11 @@ class Game {
         ];
         this.upgrades = upgradeDefs.map(u => ({ ...u, purchased: false, revealed: false }));
     }
-
+    getStressIncomeMultiplier() {
+        if (this.stress > 70) return 0.5;
+        if (this.stress > 30) return 0.8;
+        return 1.0;
+    }
     computeEmergenceMultiplier() {
         const emergenceUpgrade = this.upgrades.find(u => u.id === 'emergence');
         if (!emergenceUpgrade || !emergenceUpgrade.purchased) {
@@ -655,6 +659,14 @@ class Game {
         }
 
         this.passiveIncome = totalBasePassive * careerInfo.clickMult * prestigeMult * this.cheat.passive * coffeeMult * this.upgradeMultiplier * this.emergenceMultiplier * this.emergence2Multiplier;
+        // Сохраняем базовые значения (без штрафа) для внутренних расчётов
+        this.baseClickPower = this.clickPower;
+        this.basePassiveIncome = this.passiveIncome;
+
+        // Применяем штраф от стресса для отображения
+        const stressMult = this.getStressIncomeMultiplier();
+        this.clickPower = this.baseClickPower * stressMult;
+        this.passiveIncome = this.basePassiveIncome * stressMult;
     }
 
     checkCareerAdvancement() {
@@ -710,6 +722,7 @@ class Game {
         this.count -= this.coffeeCost;
         this.coffeeCost = Math.ceil(this.coffeeCost * COFFEE_COST_MULT);
 
+        // Если активен дебафф – только снижаем стресс
         if (this.debuffActive) {
             if (this.stress > 0) {
                 this.stress = Math.max(0, this.stress - COFFEE_STRESS_REDUCTION);
@@ -718,18 +731,22 @@ class Game {
             return;
         }
 
-        if (this.stress === 0) {
-            if (this.buffLevel < 10) {
-                this.buffLevel++;
-                this.buffTimer = BUFF_DURATION;
-            } else {
-                this.debuffActive = true;
-                this.debuffTimer = DEBUFF_DURATION;
-                this.buffLevel = 0;
-                this.buffTimer = 0;
-            }
-        } else {
+        // Стресс > 0 – кофе уходит на снижение стресса, бафф не трогаем
+        if (this.stress > 0) {
             this.stress = Math.max(0, this.stress - COFFEE_STRESS_REDUCTION);
+            // Даже если стресс стал 0 – бафф не добавляем
+            this.updateUI();
+            return;
+        }
+
+        // Стресс == 0 – работаем с баффом / дебаффом
+        if (this.buffLevel < 10) {
+            this.buffLevel++;
+            this.buffTimer = BUFF_DURATION;  // обновляем таймер до полной длительности
+        } else {
+            // Переход в дебафф
+            this.debuffActive = true;
+            this.debuffTimer = DEBUFF_DURATION;
             this.buffLevel = 0;
             this.buffTimer = 0;
         }
