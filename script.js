@@ -3,6 +3,30 @@ const suffixes = [
     '', ' К', ' М', ' В', ' Т', ' Qa', ' Qi',
     ' Sx', ' Sp', ' Oc', ' No', ' Dc'
 ];
+// ======================= ПЕРЕКЛЮЧЕНИЕ ТЕМЫ =======================
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('themeToggle');
+    // Проверяем сохранённую тему
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+        toggleBtn.textContent = '☀️ Светлая';
+    } else {
+        document.body.classList.remove('dark-theme');
+        toggleBtn.textContent = '🌙 Тёмная';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        const isDark = document.body.classList.toggle('dark-theme');
+        if (isDark) {
+            toggleBtn.textContent = '☀️ Светлая';
+            localStorage.setItem('theme', 'dark');
+        } else {
+            toggleBtn.textContent = '🌙 Тёмная';
+            localStorage.setItem('theme', 'light');
+        }
+    });
+});
 
 function formatNumber(num) {
     if (num < 0) return '-' + formatNumber(-num);
@@ -764,7 +788,7 @@ class Game {
 
         const earned = Math.floor((1.01 * Math.cbrt(this.count) * (Math.log10(this.count))) / (120000 + (this.count ** (1 / 6))));
         if (earned > 0) {
-            this.prestigePoints = earned;
+            this.prestigePoints += earned;
         }
 
         this.reset();

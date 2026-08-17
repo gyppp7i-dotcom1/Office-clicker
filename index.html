@@ -5,12 +5,14 @@
     <meta charset="UTF-8">
     <title>Офисный Планктон: Кликер</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
     <h1>💼 Офисный Планктон</h1>
+    <button id="themeToggle" class="theme-toggle">🌙 Тёмная</button>
     <div id="counter">0</div>
     <div class="cps-display">Доход в секунду: +<span id="cpsDisplay">0</span></div>
     <div class="click-power-display">Сила клика: <span id="clickPowerDisplay">1</span></div>
@@ -29,7 +31,7 @@
 
     <!-- Блок отображения эффекта кофе -->
     <div id="coffeeEffectContainer" style="display: none; max-width: 300px; margin: 8px auto;">
-        <div id="coffeeEffectLabel" style="font-size: 14px; color: #333;">☕ Нет эффекта</div>
+        <div id="coffeeEffectLabel">☕ Нет эффекта</div>    
         <div class="coffee-effect-bar">
             <div id="coffeeEffectFill"
                 style="width: 0%; height: 100%; background: #4caf50; border-radius: 10px; transition: width 0.2s;">
