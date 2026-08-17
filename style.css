@@ -1,26 +1,29 @@
-body { 
-    text-align: center; 
-    font-family: Arial, sans-serif; 
-    margin-top: 30px; 
-    background: #f0f2f5; 
+body {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    margin-top: 30px;
+    background: #f0f2f5;
 }
 
-#counter { 
-    font-size: 48px; 
-    margin: 10px 0; 
-    font-weight: bold; 
-    color: #333; 
+#counter {
+    font-size: 48px;
+    margin: 10px 0;
+    font-weight: bold;
+    color: #333;
 }
-.cps-display { 
-    font-size: 18px; 
-    color: #666; 
-    margin-bottom: 15px; 
+
+.cps-display {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 15px;
 }
+
 .stress-display {
     font-size: 16px;
     margin-bottom: 10px;
     color: #d9534f;
 }
+
 .stress-bar {
     width: 300px;
     height: 20px;
@@ -29,6 +32,7 @@ body {
     margin: 0 auto 15px;
     overflow: hidden;
 }
+
 .stress-fill {
     height: 100%;
     background: #f0ad4e;
@@ -36,89 +40,99 @@ body {
     transition: width 0.2s;
 }
 
-#clickButton { 
-    font-size: 28px; 
-    padding: 15px 40px; 
-    cursor: pointer; 
-    background-color: #ff9800; 
-    color: white; 
-    border: none; 
-    border-radius: 50px; 
+#clickButton {
+    font-size: 28px;
+    padding: 15px 40px;
+    cursor: pointer;
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 50px;
     box-shadow: 0 4px #e68900;
-    transition: 0.05s; 
+    transition: 0.05s;
     margin-bottom: 20px;
 }
-#clickButton:active { 
-    transform: translateY(4px); 
-    box-shadow: none; 
+
+#clickButton:active {
+    transform: translateY(4px);
+    box-shadow: none;
 }
 
-.quantity-selector { 
-    margin-bottom: 20px; 
+.quantity-selector {
+    margin-bottom: 20px;
 }
+
 .quantity-btn {
-    font-size: 16px; 
-    padding: 8px 16px; 
+    font-size: 16px;
+    padding: 8px 16px;
     margin: 0 5px;
-    background-color: #e0e0e0; 
+    background-color: #e0e0e0;
     border: 1px solid #ccc;
-    border-radius: 5px; 
-    cursor: pointer; 
+    border-radius: 5px;
+    cursor: pointer;
     font-weight: bold;
 }
-.quantity-btn.active { 
-    background-color: #2196f3; 
-    color: white; 
-    border-color: #0b7dda; 
+
+.quantity-btn.active {
+    background-color: #2196f3;
+    color: white;
+    border-color: #0b7dda;
 }
 
 .shop-container {
-    background: white; 
-    max-width: 1000px; 
+    background: white;
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 20px; 
-    border-radius: 15px; 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
-.shop-title { 
-    font-size: 24px; 
-    margin-bottom: 15px; 
-    color: #222; 
-    border-bottom: 2px solid #eee; 
-    padding-bottom: 10px; 
+
+.shop-title {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #222;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
 }
-.shop-item { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 15px; 
+
+.shop-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
     flex-wrap: wrap;
 }
+
 .upgrade-btn {
-    font-size: 14px; 
-    padding: 8px 12px; 
+    font-size: 14px;
+    padding: 8px 12px;
     background-color: #4caf50;
-    color: white; 
-    border: none; 
-    border-radius: 8px; 
-    cursor: pointer; 
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
     min-width: 200px;
 }
-.upgrade-btn:disabled { 
-    background-color: #cccccc; 
-    cursor: not-allowed; 
+
+.upgrade-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
 }
-.item-info { 
-    text-align: left; 
-    font-size: 14px; 
-    color: #444; 
-    flex: 1; 
-    margin-right: 10px; 
+
+.item-info {
+    text-align: left;
+    font-size: 14px;
+    color: #444;
+    flex: 1;
+    margin-right: 10px;
 }
+
 .source-cps {
     font-size: 12px;
     color: #888;
 }
+
 .coffee-btn {
     font-size: 14px;
     padding: 8px 12px;
@@ -129,6 +143,7 @@ body {
     cursor: pointer;
     margin-left: 5px;
 }
+
 .prestige-btn {
     font-size: 16px;
     padding: 10px 20px;
@@ -139,15 +154,18 @@ body {
     cursor: pointer;
     margin-top: 10px;
 }
+
 .prestige-info {
     margin-top: 10px;
     font-size: 14px;
     color: #555;
 }
+
 .career-info {
     margin: 10px 0;
     font-size: 16px;
 }
+
 .click-power-display {
     font-size: 18px;
     color: #666;
@@ -164,10 +182,12 @@ body {
     border-radius: 10px;
     text-align: center;
 }
+
 .cheat-section h3 {
     margin-top: 0;
     color: #856404;
 }
+
 .cheat-section input {
     width: 80px;
     padding: 6px;
@@ -176,6 +196,7 @@ body {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
 .cheat-btn {
     font-size: 16px;
     padding: 6px 20px;
@@ -186,14 +207,17 @@ body {
     font-weight: bold;
     margin-left: 8px;
 }
+
 .cheat-btn:hover {
     background-color: #e0a800;
 }
+
 .cheat-info {
     margin-top: 10px;
     font-size: 14px;
     color: #555;
 }
+
 .cheat-info span {
     font-weight: bold;
     color: #000;
@@ -205,12 +229,14 @@ body {
     gap: 20px;
     flex-wrap: wrap;
 }
+
 .shop-column-left,
 .shop-column-right,
 .shop-column-upgrades {
     flex: 1 1 30%;
     min-width: 260px;
 }
+
 .column-title {
     font-size: 18px;
     font-weight: bold;
@@ -219,7 +245,9 @@ body {
     border-bottom: 1px solid #ddd;
     padding-bottom: 4px;
 }
+
 @media (max-width: 900px) {
+
     .shop-column-left,
     .shop-column-right,
     .shop-column-upgrades {
@@ -248,11 +276,13 @@ body {
     margin: 4px auto;
     transition: opacity 0.3s;
 }
+
 #coffeeEffectFill {
     height: 100%;
     width: 0%;
     transition: width 0.2s, background-color 0.3s;
 }
+
 #coffeeEffectContainer {
     transition: opacity 0.3s;
 }
@@ -265,6 +295,7 @@ body {
     justify-content: center;
     margin-top: 10px;
 }
+
 .upgrade-square {
     width: 90px;
     height: 90px;
@@ -280,24 +311,28 @@ body {
     user-select: none;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+
 .upgrade-square:hover {
     border-color: #888;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .upgrade-square.purchased {
     background: #4caf50;
     border-color: #2e7d32;
     opacity: 0.7;
     cursor: default;
 }
+
 .upgrade-square .upgrade-icon {
     line-height: 1;
     pointer-events: none;
 }
+
 /* Анимация нажатия (клик) – плавная */
 .upgrade-square.pressed {
     transform: scale(0.88);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 /* ===== КАСТОМНЫЙ TOOLTIP ===== */
@@ -312,25 +347,207 @@ body {
     max-width: 220px;
     pointer-events: none;
     z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     line-height: 1.4;
     border: 1px solid #555;
 }
+
 #upgradeTooltip .tooltip-name {
     font-weight: bold;
     font-size: 15px;
     margin-bottom: 2px;
 }
+
 #upgradeTooltip .tooltip-desc {
     color: #ddd;
     font-size: 13px;
     margin-bottom: 4px;
 }
+
 #upgradeTooltip .tooltip-price {
     color: #ffd700;
     font-weight: bold;
 }
+
 #upgradeTooltip .tooltip-status {
     font-size: 12px;
     color: #aaa;
+}
+
+/* ===== МОБИЛЬНАЯ АДАПТАЦИЯ ===== */
+@media (max-width: 768px) {
+    body {
+        margin: 10px;
+        padding: 0;
+    }
+
+    h1 {
+        font-size: 24px;
+        margin: 10px 0;
+    }
+
+    #counter {
+        font-size: 36px;
+    }
+
+    .cps-display,
+    .click-power-display,
+    .stress-display,
+    .career-info {
+        font-size: 14px;
+    }
+
+    .stress-bar {
+        width: 100%;
+        max-width: 300px;
+        height: 18px;
+    }
+
+    #clickButton {
+        font-size: 24px;
+        padding: 18px 30px;
+        width: 90%;
+        max-width: 300px;
+        margin: 10px auto;
+        display: block;
+        border-radius: 40px;
+    }
+
+    .coffee-btn {
+        font-size: 16px;
+        padding: 12px 20px;
+        width: 90%;
+        max-width: 300px;
+        margin: 8px auto;
+        display: block;
+    }
+
+    .quantity-selector {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        margin: 10px 0;
+    }
+
+    .quantity-btn {
+        font-size: 14px;
+        padding: 6px 12px;
+        min-width: 44px;
+        flex: 0 1 auto;
+    }
+
+    .shop-container {
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    .shop-columns {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .shop-column-left,
+    .shop-column-right,
+    .shop-column-upgrades {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .shop-item {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 8px;
+    }
+
+    .shop-item .item-info {
+        font-size: 13px;
+        margin-right: 0;
+        margin-bottom: 6px;
+        text-align: center;
+    }
+
+    .shop-item .item-info strong {
+        font-size: 15px;
+    }
+
+    .shop-item .item-info span[id$="Icon"] {
+        font-size: 28px !important;
+        padding: 4px 10px !important;
+    }
+
+    .upgrade-btn {
+        font-size: 14px;
+        padding: 10px 12px;
+        min-width: 160px;
+        width: 100%;
+        text-align: center;
+        margin: 3px 0;
+    }
+
+    .shop-item>div[style*="display:flex"] {
+        flex-direction: column;
+        gap: 6px;
+        align-items: stretch;
+    }
+
+    /* Квадратики улучшений */
+    .upgrade-square {
+        width: 70px;
+        height: 70px;
+        font-size: 34px;
+    }
+
+    #upgradesContainer {
+        gap: 8px;
+        justify-content: center;
+    }
+
+    /* Престиж */
+    .prestige-btn {
+        font-size: 16px;
+        padding: 12px 18px;
+        width: 100%;
+        max-width: 300px;
+        margin: 10px auto;
+    }
+
+    /* Чит-блок */
+    .cheat-section {
+        padding: 12px;
+    }
+
+    .cheat-section input {
+        width: 70px;
+        font-size: 14px;
+    }
+
+    .cheat-btn {
+        font-size: 14px;
+        padding: 6px 16px;
+        margin-left: 0;
+        margin-top: 6px;
+        display: inline-block;
+    }
+
+    .cheat-info {
+        font-size: 13px;
+    }
+
+    /* Эффекты кофе */
+    .coffee-effect-bar {
+        height: 16px;
+    }
+
+    #coffeeEffectContainer {
+        max-width: 100%;
+    }
+
+    /* Убираем лишние отступы */
+    .column-title {
+        font-size: 16px;
+        margin-top: 12px;
+    }
 }
