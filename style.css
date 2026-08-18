@@ -291,6 +291,74 @@ button,
   margin-left: 5px;
 }
 
+.coffee-btn:disabled {
+  background-color: var(--upgrade-btn-disabled);
+  cursor: not-allowed;
+}
+
+/* ===== Наливающаяся чашка кофе ===== */
+.coffee-cup-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 8px auto 4px;
+  user-select: none;
+}
+
+.coffee-cup {
+  position: relative;
+  width: 30px;
+  height: 26px;
+  /* overflow не задаём здесь, чтобы ручка не обрезалась */
+}
+
+.coffee-cup-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--coffee-btn-bg);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  background: var(--bg-secondary);
+  overflow: hidden;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.15);
+  transition: border-color 0.3s;
+}
+
+/* Ручка чашки — отдельный элемент, всегда видима, цвет берётся из переменной темы */
+.coffee-cup-handle {
+  position: absolute;
+  right: -9px;
+  top: 4px;
+  width: 7px;
+  height: 11px;
+  background: transparent;
+  border: 2px solid var(--coffee-btn-bg);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  transition: border-color 0.3s;
+}
+
+.coffee-cup-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0%;
+  background: linear-gradient(180deg, #c17a3d, var(--coffee-btn-bg));
+  transition: height 0.25s linear;
+}
+
+.coffee-cup-fill.ready {
+  box-shadow: 0 0 6px 2px rgba(139, 69, 19, 0.55);
+}
+
+.coffee-cup-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
 .prestige-btn {
   font-size: 16px;
   padding: 10px 20px;
@@ -410,6 +478,92 @@ button,
   line-height: 1;
   margin-right: 6px;
   vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease;
+}
+
+.item-info strong span[id$="Icon"]:hover {
+  transform: scale(1.08) rotate(-2deg);
+}
+
+.item-info strong span[id$="Icon"]:active {
+  transform: scale(0.88);
+}
+
+/* Приятная "поп" анимация при клике на иконку здания */
+.item-info strong span[id$="Icon"].icon-pop {
+  animation: iconPop 0.4s ease;
+}
+
+@keyframes iconPop {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.35) rotate(-10deg);
+  }
+  60% {
+    transform: scale(0.92) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Нежная искорка, всплывающая при клике на иконку */
+.icon-sparkle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 20px;
+  z-index: 10000;
+  animation: iconSparkleFloat 0.7s ease-out forwards;
+  user-select: none;
+  white-space: nowrap;
+}
+
+@keyframes iconSparkleFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(0px) scale(0.4) rotate(0deg);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.1) rotate(10deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-45px) scale(0.8) rotate(-15deg);
+  }
+}
+
+/* ===== Частицы при клике по фону ===== */
+body {
+  cursor: pointer;
+}
+
+.bg-particle {
+  position: fixed;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  will-change: transform, opacity;
+  animation: bgParticleFly 0.55s cubic-bezier(0.25, 0.7, 0.4, 1) forwards;
+}
+
+@keyframes bgParticleFly {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(0.3);
+  }
 }
 
 /* Эффекты кофе – исправлен цвет текста */

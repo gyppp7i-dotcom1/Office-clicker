@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+// Внутри класса Game добавьте метод
 
 function formatNumber(num) {
     if (num < 0) return '-' + formatNumber(-num);
@@ -71,6 +72,7 @@ const UPGRADE_TYPE_PARAMS = {
 
 const COFFEE_COST_MULT = 1.03;
 const COFFEE_STRESS_REDUCTION = 15;
+const COFFEE_POUR_DURATION = 3; // кд на "выпить кофе" (сек) — кофе наливается заново после каждой чашки
 const BUFF_DURATION = 35;
 const DEBUFF_DURATION = 45;
 const DEBUFF_MALUS = 0.50;
@@ -82,22 +84,22 @@ const STRESS_DECAY_GYM_BONUS = 0.10;
 
 const BUILDINGS = {
     equip: {
-        name: 'Оборудование', icon: '🖥', baseCost: 100, costMult: 1.12, clickPower: 0.5,
+        name: 'Оборудование', icon: '⌨️', baseCost: 100, costMult: 1.12, clickPower: 0.2,
         upgradeType: 'standard', alwaysVisible: true,
         dom: { lvl: 'equipLvl', cost: 'equipCost', btn: 'upgradeEquip', multBtn: 'upgradeEquipMult', multPrice: 'equipMultPrice', upgradeLvl: 'equipUpgradeLvl', icon: 'equipIcon', info: 'equipClickInfo', shop: 'shop-equip' }
     },
     coffeeMachine: {
-        name: 'Кофе-машина', icon: '☕', baseCost: 500, costMult: 1.14, clickPower: 2,
+        name: 'Кофе-машина', icon: '☕', baseCost: 1000, costMult: 1.14, clickPower: 3,
         upgradeType: 'standard', alwaysVisible: true,
         dom: { lvl: 'coffeeMachineLvl', cost: 'coffeeMachineCost', btn: 'upgradeCoffeeMachine', multBtn: 'upgradeCoffeeMachineMult', multPrice: 'coffeeMachineMultPrice', upgradeLvl: 'coffeeMachineUpgradeLvl', icon: 'coffeeMachineIcon', info: 'coffeeClickInfo', shop: 'shop-coffee' }
     },
     secretary: {
-        name: 'Личный секретарь', icon: '👔', baseCost: 2000, costMult: 1.15, clickPower: 8,
+        name: 'Личный секретарь', icon: '👔', baseCost: 15000, costMult: 1.15, clickPower: 50,
         upgradeType: 'standard',
         dom: { lvl: 'secretaryLvl', cost: 'secretaryCost', btn: 'upgradeSecretary', multBtn: 'upgradeSecretaryMult', multPrice: 'secretaryMultPrice', upgradeLvl: 'secretaryUpgradeLvl', icon: 'secretaryIcon', info: 'secretaryClickInfo', shop: 'shop-secretary' }
     },
     aiComputer: {
-        name: 'AI-ЭВМ', icon: '🖥️', baseCost: 35e8, costMult: 1.52, clickPower: 50000,
+        name: 'AI-ЭВМ', icon: '🖥️', baseCost: 1e10, costMult: 1.3, clickPower: 3 * 10 ** 6,
         upgradeType: 'aiComputer',
         dom: { lvl: 'aiComputerLvl', cost: 'aiComputerCost', btn: 'upgradeAIComputer', multBtn: 'upgradeAIComputerMult', multPrice: 'aiComputerMultPrice', upgradeLvl: 'aiComputerUpgradeLvl', icon: 'aiComputerIcon', info: 'aiComputerClickInfo', shop: 'shop-aiComputer' }
     },
@@ -107,27 +109,27 @@ const BUILDINGS = {
         dom: { lvl: 'staffLvl', cost: 'staffCost', btn: 'upgradeStaff', multBtn: 'upgradeStaffMult', multPrice: 'staffMultPrice', upgradeLvl: 'staffUpgradeLvl', icon: 'staffIcon', info: 'staffCpsInfo', shop: 'shop-staff' }
     },
     auto: {
-        name: 'Отдел автоматизации', icon: '🤖', baseCost: 800, costMult: 1.13, cps: 5,
+        name: 'Отдел автоматизации', icon: '🤖', baseCost: 1000, costMult: 1.13, cps: 10,
         upgradeType: 'standard',
         dom: { lvl: 'autoLvl', cost: 'autoCost', btn: 'upgradeAuto', multBtn: 'upgradeAutoMult', multPrice: 'autoMultPrice', upgradeLvl: 'autoUpgradeLvl', icon: 'autoIcon', info: 'autoCpsInfo', shop: 'shop-auto' }
     },
     robot: {
-        name: 'Роботы-помощники', icon: '🦾', baseCost: 4000, costMult: 1.134, cps: 20,
+        name: 'Роботы-помощники', icon: '🦾', baseCost: 60000, costMult: 1.134, cps: 400,
         upgradeType: 'standard',
         dom: { lvl: 'robotLvl', cost: 'robotCost', btn: 'upgradeRobot', multBtn: 'upgradeRobotMult', multPrice: 'robotMultPrice', upgradeLvl: 'robotUpgradeLvl', icon: 'robotIcon', info: 'robotCpsInfo', shop: 'shop-robot' }
     },
     ai: {
-        name: 'AI-ассистент', icon: '🧠', baseCost: 70000, costMult: 1.35, cps: 300,
+        name: 'AI-ассистент', icon: '🧠', baseCost: 999999, costMult: 1.17, cps: 9999,
         upgradeType: 'ai',
         dom: { lvl: 'aiLvl', cost: 'aiCost', btn: 'upgradeAI', multBtn: 'upgradeAIMult', multPrice: 'aiMultPrice', upgradeLvl: 'aiUpgradeLvl', icon: 'aiIcon', info: 'aiCpsInfo', shop: 'shop-ai' }
     },
     processing: {
-        name: 'Отдел обработки', icon: '⚙️', baseCost: 1.5e6, costMult: 1.45, cps: 7000,
+        name: 'Отдел обработки', icon: '⚙️', baseCost: 1.5e8, costMult: 1.2, cps: 300000,
         upgradeType: 'processing',
         dom: { lvl: 'processingLvl', cost: 'processingCost', btn: 'upgradeProcessing', multBtn: 'upgradeProcessingMult', multPrice: 'processingMultPrice', upgradeLvl: 'processingUpgradeLvl', icon: 'processingIcon', info: 'processingCpsInfo', shop: 'shop-processing' }
     },
     office: {
-        name: 'Собственный офис', icon: '🏢', baseCost: 1e10, costMult: 1.51, cps: 400000,
+        name: 'Собственный офис', icon: '🏢', baseCost: 1e10, costMult: 1.35, cps: 1e8,
         upgradeType: 'office',
         dom: { lvl: 'officeLvl', cost: 'officeCost', btn: 'upgradeOffice', multBtn: 'upgradeOfficeMult', multPrice: 'officeMultPrice', upgradeLvl: 'officeUpgradeLvl', icon: 'officeIcon', info: 'officeCpsInfo', shop: 'shop-office' }
     },
@@ -159,6 +161,7 @@ class Building {
             }
         }
     }
+    // Внутри класса Game добавьте метод
 
     getBulkCost(quantity) {
         const { baseCost, costMult } = this.stats;
@@ -198,11 +201,14 @@ class Building {
         const params = UPGRADE_TYPE_PARAMS[upgradeType] || UPGRADE_TYPE_PARAMS.standard;
         const basePrice = baseCost * 10;
 
+        const STEP_AFTER_LAST = 25;
         let required;
         if (lvl <= UPGRADE_THRESHOLDS.length) {
             required = UPGRADE_THRESHOLDS[lvl - 1];
         } else {
-            required = UPGRADE_THRESHOLDS[UPGRADE_THRESHOLDS.length - 1];
+            const lastThreshold = UPGRADE_THRESHOLDS[UPGRADE_THRESHOLDS.length - 1];
+            const extraLevels = (lvl - UPGRADE_THRESHOLDS.length) * STEP_AFTER_LAST;
+            required = lastThreshold + extraLevels;
         }
 
         let price;
@@ -252,6 +258,7 @@ class Game {
         this.careerLevel = 0;
         this.prestigePoints = 0;
         this.coffeeCost = 20;
+        this.coffeePour = 0; // 0 = чашка готова; >0 = сколько секунд ещё наливается
         this.buffLevel = 0;
         this.buffTimer = 0;
         this.debuffActive = false;
@@ -260,6 +267,7 @@ class Game {
         this.cheat = { click: 1, passive: 1, exp: 1 };
         this.lastClickTime = 0;
         this.lastUpdateTime = Date.now();
+        this.audioCtx = null;
 
         this.coachMultiplier = 1;
         this.emergenceMultiplier = 1;
@@ -312,8 +320,8 @@ class Game {
                 id: 'coach',
                 name: 'ИИ-коуч',
                 icon: '֍',
-                description: '+1% к эффективности курсов за каждые 10 лвл AI-ассистентов <br> +5% за каждые 5 AI-ЭВМ',
-                price: 20e9,  // 20B
+                description: '+5% к эффективности курсов за каждые 10 лвл AI-ассистентов <br> +5% за каждые 5 AI-ЭВМ',
+                price: 2e9,  // 20B
                 multiplier: 1,
                 unlockCondition: (game) => game.careerLevel >= 5   // 5-я должность: "Заместитель руководителя отдела"
             },
@@ -321,7 +329,7 @@ class Game {
                 id: 'emergence',
                 name: 'Эмерджентность',
                 icon: 'η',
-                description: 'Добавляет 1% к доходу за каждые 100 лвл (кроме курсов и зала)',
+                description: 'Добавляет 1% к доходу за каждые 35 лвл (кроме курсов и зала)',
                 price: 1e9,
                 multiplier: 1,
                 unlockCondition: (game) => game.count >= 200e6
@@ -357,7 +365,7 @@ class Game {
             if (id === 'gym' || id === 'course') continue;
             totalLevels += b.level;
         }
-        this.emergenceMultiplier = 1 + Math.floor(totalLevels / 100) * 0.01;
+        this.emergenceMultiplier = 1 + Math.floor(totalLevels / 35) * 0.01;
     }
 
     computeEmergence2Multiplier() {
@@ -387,7 +395,7 @@ class Game {
         const aiLevel = ai ? ai.level : 0;
         const aiComputerLevel = aiComputer ? aiComputer.level : 0;
 
-        const bonus = Math.floor(aiLevel / 10) * 0.01   // 1% за каждые 10 уровней AI-ассистента
+        const bonus = Math.floor(aiLevel / 10) * 0.05   // 1% за каждые 10 уровней AI-ассистента
             + Math.floor(aiComputerLevel / 5) * 0.05; // 5% за каждые 5 уровней AI-ЭВМ
 
         this.coachMultiplier = 1 + bonus;
@@ -412,6 +420,8 @@ class Game {
             coffeeEffectContainer: document.getElementById('coffeeEffectContainer'),
             coffeeEffectLabel: document.getElementById('coffeeEffectLabel'),
             coffeeEffectFill: document.getElementById('coffeeEffectFill'),
+            coffeeCupFill: document.getElementById('coffeeCupFill'),
+            coffeeCupLabel: document.getElementById('coffeeCupLabel'),
             cheatInput: document.getElementById('cheatInput'),
             cheatButton: document.getElementById('cheatButton'),
             cheatClickMultDisplay: document.getElementById('cheatClickMultDisplay'),
@@ -455,9 +465,20 @@ class Game {
             square.addEventListener('mouseenter', (e) => this.showTooltip(e, index));
             square.addEventListener('mousemove', (e) => this.moveTooltip(e));
             square.addEventListener('mouseleave', () => this.hideTooltip());
-            square.addEventListener('click', () => {
+            square.addEventListener('click', (e) => {
                 square.classList.add('pressed');
                 setTimeout(() => square.classList.remove('pressed'), 200);
+
+                // +++ НОВОЕ: приятная искорка и нежный звук при клике — работает и для
+                // недоступных/некупленных улучшений, и для уже купленных +++
+                try {
+                    const rect = square.getBoundingClientRect();
+                    this.showIconSparkle(rect.left + rect.width / 2, rect.top);
+                    this.playIconClickSound();
+                } catch (err) {
+                    console.warn('Эффект клика не сработал:', err);
+                }
+
                 this.purchaseUpgradeItem(index);
             });
 
@@ -585,12 +606,245 @@ class Game {
                 this.buyAmount = amount;
                 document.querySelectorAll('.quantity-btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
+                this.playQuantitySelectSound();
                 this.updateUI();
             });
         });
         document.querySelector('.quantity-btn')?.classList.add('active');
+
+        // +++ НОВОЕ: приятный клик по иконкам зданий (просто для удовольствия, без эффекта на игру) +++
+        document.querySelectorAll('span[id$="Icon"]').forEach(icon => {
+            icon.addEventListener('click', (e) => this.handleIconClick(e, icon));
+        });
+
+        // +++ НОВОЕ: клик по фону страницы – разлетающиеся частицы + тихий стук +++
+        // Срабатывает только вне интерактивных элементов, чтобы не мешать основным кнопкам
+        document.addEventListener('click', (e) => {
+            const interactiveSelector = 'button, input, a, select, textarea, ' +
+                '.quantity-btn, .upgrade-square, span[id$="Icon"], .theme-toggle';
+            if (e.target.closest(interactiveSelector)) return;
+            this.handleBackgroundClick(e);
+        });
+    }
+    // +++ НОВОЕ: универсальный проигрыватель одной ноты (используется всеми звуками) +++
+    ensureAudioCtx() {
+        if (!this.audioCtx) {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        // Если контекст приостановлен (бывает на мобильных), возобновляем
+        if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+        }
+        return this.audioCtx;
     }
 
+    playTone(freq, duration = 0.08, type = 'sine', gain = 0.12, delay = 0) {
+        const ctx = this.ensureAudioCtx();
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        oscillator.type = type;
+        oscillator.frequency.value = freq;
+        const startTime = ctx.currentTime + delay;
+        gainNode.gain.setValueAtTime(gain, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+    }
+
+    playClickSound() {
+        try {
+            this.playTone(880, 0.08, 'sine', 0.12);
+        } catch (e) {
+            // Любая ошибка звука не должна влиять на игру
+            console.warn('Звук не воспроизведён:', e);
+        }
+    }
+
+    // +++ НОВОЕ: звук покупки здания +++
+    playBuyBuildingSound() {
+        try {
+            this.playTone(520, 0.07, 'triangle', 0.12, 0);
+            this.playTone(780, 0.09, 'triangle', 0.12, 0.05);
+        } catch (e) {
+            console.warn('Звук не воспроизведён:', e);
+        }
+    }
+
+    // +++ НОВОЕ: звук покупки улучшения здания (множитель) +++
+    playBuildingUpgradeSound() {
+        try {
+            this.playTone(660, 0.05, 'square', 0.10, 0);
+            this.playTone(990, 0.08, 'square', 0.10, 0.045);
+        } catch (e) {
+            console.warn('Звук не воспроизведён:', e);
+        }
+    }
+
+    // +++ НОВОЕ: звук выбора количества покупки (x1, x10, Макс...) +++
+    playQuantitySelectSound() {
+        try {
+            this.playTone(420, 0.045, 'sine', 0.08, 0);
+        } catch (e) {
+            console.warn('Звук не воспроизведён:', e);
+        }
+    }
+
+    // +++ НОВОЕ: звук выпитого кофе +++
+    playCoffeeSound() {
+        try {
+            this.playTone(300, 0.09, 'sine', 0.10, 0);
+            this.playTone(230, 0.14, 'sine', 0.08, 0.07);
+        } catch (e) {
+            console.warn('Звук не воспроизведён:', e);
+        }
+    }
+
+    // +++ НОВОЕ: звук покупки общего улучшения (квадратики) — короткий аккорд +++
+    playGeneralUpgradeSound() {
+        try {
+            this.playTone(523.25, 0.12, 'triangle', 0.11, 0);     // C5
+            this.playTone(659.25, 0.12, 'triangle', 0.11, 0.07);  // E5
+            this.playTone(783.99, 0.18, 'triangle', 0.11, 0.14);  // G5
+        } catch (e) {
+            console.warn('Звук не воспроизведён:', e);
+        }
+    }
+
+    // +++ НОВОЕ: тихий "отказной" звук при нехватке средств на покупку (в т.ч. престиж) +++
+    playInsufficientFundsSound() {
+        try {
+            this.playTone(260, 0.09, 'sine', 0.06, 0);
+            this.playTone(180, 0.13, 'sine', 0.05, 0.06);
+        } catch (e) {
+            console.warn('Звук не воспроизведён:', e);
+        }
+    }
+
+    // +++ НОВОЕ: нежный звук клика по иконке здания (просто приятная мелочь) +++
+    playIconClickSound() {
+        try {
+            this.playTone(1046.50, 0.12, 'sine', 0.05, 0);     // C6
+            this.playTone(1318.51, 0.14, 'sine', 0.045, 0.05); // E6
+        } catch (e) {
+            console.warn('Звук не воспроизведён:', e);
+        }
+    }
+
+    // +++ НОВОЕ: лёгкая искорка, всплывающая рядом с иконкой при клике +++
+    showIconSparkle(x, y) {
+        const sparkles = ['✨', '💫', '⭐', '🌟'];
+        const symbol = sparkles[Math.floor(Math.random() * sparkles.length)];
+
+        const el = document.createElement('div');
+        el.className = 'icon-sparkle';
+        el.textContent = symbol;
+
+        const offsetX = (Math.random() - 0.5) * 30;
+        el.style.left = (x + offsetX) + 'px';
+        el.style.top = (y - 6) + 'px';
+
+        document.body.appendChild(el);
+
+        setTimeout(() => {
+            if (el.parentNode) el.parentNode.removeChild(el);
+        }, 700);
+    }
+
+    // +++ НОВОЕ: обработчик клика по иконке здания — просто приятная мелочь, на игру не влияет +++
+    handleIconClick(event, iconEl) {
+        try {
+            // Перезапускаем анимацию "поп"
+            iconEl.classList.remove('icon-pop');
+            void iconEl.offsetWidth; // форсируем reflow, чтобы анимация сыграла заново
+            iconEl.classList.add('icon-pop');
+
+            const rect = iconEl.getBoundingClientRect();
+            this.showIconSparkle(rect.left + rect.width / 2, rect.top);
+
+            this.playIconClickSound();
+        } catch (e) {
+            // Декоративный эффект не должен ломать игру
+            console.warn('Эффект иконки не сработал:', e);
+        }
+    }
+
+    // +++ НОВОЕ: тихий звук клика по фону — как будто лёгкий стук кирпичиков +++
+    playBackgroundClickSound() {
+        try {
+            const ctx = this.ensureAudioCtx();
+            const duration = 0.06;
+            const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                // затухающий белый шум – даёт глухой, "материальный" стук
+                data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+            }
+
+            const noise = ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 700; // приглушаем верх – звук становится "деревянно-каменным"
+
+            const gainNode = ctx.createGain();
+            gainNode.gain.setValueAtTime(0.05, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+            noise.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            noise.start(ctx.currentTime);
+            noise.stop(ctx.currentTime + duration);
+        } catch (e) {
+            console.warn('Звук не воспроизведён:', e);
+        }
+    }
+
+    // +++ НОВОЕ: маленькие частицы, разлетающиеся во все стороны при клике по фону +++
+    spawnBackgroundParticles(x, y) {
+        const colors = ['#ff9800', '#2196f3', '#4caf50', '#9b59b6', '#d9534f', '#ffc107', '#8B4513'];
+        const count = 8 + Math.floor(Math.random() * 4); // 8-11 частиц
+
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.6;
+            const distance = 24 + Math.random() * 36;
+            const dx = Math.cos(angle) * distance;
+            const dy = Math.sin(angle) * distance;
+            const rot = (Math.random() - 0.5) * 360;
+            const size = 5 + Math.random() * 4;
+
+            const particle = document.createElement('div');
+            particle.className = 'bg-particle';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.setProperty('--dx', dx + 'px');
+            particle.style.setProperty('--dy', dy + 'px');
+            particle.style.setProperty('--rot', rot + 'deg');
+
+            document.body.appendChild(particle);
+            setTimeout(() => {
+                if (particle.parentNode) particle.parentNode.removeChild(particle);
+            }, 600);
+        }
+    }
+
+    // +++ НОВОЕ: обработчик клика по фону страницы (мимо кнопок, иконок и т.д.) +++
+    handleBackgroundClick(event) {
+        try {
+            this.spawnBackgroundParticles(event.clientX, event.clientY);
+            this.playBackgroundClickSound();
+        } catch (e) {
+            console.warn('Эффект фона не сработал:', e);
+        }
+    }
     getPrestigeBonus() {
         return 1 + (this.prestigePoints * 0.1);
     }
@@ -712,6 +966,14 @@ class Game {
 
     // +++ ИЗМЕНЕНО: убран двойной штраф, добавлен вызов всплывающего текста +++
     handleClick(event) {
+        try {
+            this.playClickSound();
+        } catch (e) {
+            // игнорируем
+        }
+
+
+
         const now = Date.now();
         if (now - this.lastClickTime < 25) {
             this.dom.clickButton.style.transform = 'scale(0.95)';
@@ -760,9 +1022,20 @@ class Game {
     }
 
     drinkCoffee() {
-        if (this.count < this.coffeeCost) return;
+        // +++ НОВОЕ: чашку нельзя выпить, пока кофе ещё наливается +++
+        if (this.coffeePour > 0) {
+            this.playInsufficientFundsSound();
+            return;
+        }
+        if (this.count < this.coffeeCost) {
+            this.playInsufficientFundsSound();
+            return;
+        }
         this.count -= this.coffeeCost;
         this.coffeeCost = Math.ceil(this.coffeeCost * COFFEE_COST_MULT);
+        this.playCoffeeSound();
+        // Чашка выпита — она пустеет и снова начинает наливаться
+        this.coffeePour = COFFEE_POUR_DURATION;
 
         // Если активен дебафф – только снижаем стресс
         if (this.debuffActive) {
@@ -802,14 +1075,20 @@ class Game {
         let quantity = this.buyAmount;
         if (quantity === -1) {
             quantity = b.getMaxAffordable(this.count);
-            if (quantity === 0) return;
+            if (quantity === 0) {
+                this.playInsufficientFundsSound();
+                return;
+            }
         }
 
         const cost = b.getBulkCost(quantity);
         if (this.count >= cost) {
             this.count -= cost;
             b.level += quantity;
+            this.playBuyBuildingSound();
             this.updateUI();
+        } else {
+            this.playInsufficientFundsSound();
         }
     }
 
@@ -818,12 +1097,15 @@ class Game {
         if (!b || !b.stats.upgradeType) return;
 
         const nextData = b.getUpgradeData(b.upgradeLevel + 1);
-        if (!nextData || !nextData.available) return;
+        if (!nextData || !nextData.available) return; // недоступно по условию – это не про деньги
 
         if (this.count >= nextData.price) {
             this.count -= nextData.price;
             b.upgradeLevel++;
+            this.playBuildingUpgradeSound();
             this.updateUI();
+        } else {
+            this.playInsufficientFundsSound();
         }
     }
 
@@ -831,7 +1113,10 @@ class Game {
         const upgrade = this.upgrades[index];
         if (!upgrade) return;
         if (upgrade.purchased) return;
-        if (this.count < upgrade.price) return;
+        if (this.count < upgrade.price) {
+            this.playInsufficientFundsSound();
+            return;
+        }
 
         this.count -= upgrade.price;
         upgrade.purchased = true;
@@ -839,11 +1124,15 @@ class Game {
         if (upgrade.id !== 'emergence' && upgrade.id !== 'stressResist1' && upgrade.id !== 'emergence2' && upgrade.id !== 'coach') {
             this.upgradeMultiplier *= upgrade.multiplier;
         }
+        this.playGeneralUpgradeSound();
         this.updateUI();
     }
 
     prestige() {
-        if (this.careerLevel < CAREERS.length - 1 || this.count < PRESTIGE_COST_PER_SHARE) return;
+        if (this.careerLevel < CAREERS.length - 1 || this.count < PRESTIGE_COST_PER_SHARE) {
+            this.playInsufficientFundsSound();
+            return;
+        }
 
         const earned = Math.floor((1.01 * Math.cbrt(this.count) * (Math.log10(this.count))) / (120000 + (this.count ** (1 / 6))));
         if (earned > 0) {
@@ -859,6 +1148,7 @@ class Game {
         this.experience = 0;
         this.careerLevel = 0;
         this.coffeeCost = 20;
+        this.coffeePour = 0;
         this.buffLevel = 0;
         this.buffTimer = 0;
         this.debuffActive = false;
@@ -908,7 +1198,7 @@ class Game {
             visible = true;
         } else if (this.buffLevel > 0) {
             const bonusPercent = this.buffLevel * 10;
-            label = `✅ Бафф: +${bonusPercent}% дохода`;
+            label = `✅ +${bonusPercent}% дохода`;
             fillColor = '#4caf50';
             percent = (this.buffTimer / BUFF_DURATION) * 100;
             visible = true;
@@ -924,6 +1214,24 @@ class Game {
         if (this.dom.coffeeEffectFill) {
             this.dom.coffeeEffectFill.style.width = percent + '%';
             this.dom.coffeeEffectFill.style.backgroundColor = fillColor;
+        }
+    }
+
+    // +++ НОВОЕ: обновление визуала "наливающейся" чашки кофе +++
+    updateCoffeeCup() {
+        const ready = this.coffeePour <= 0;
+        const fillPercent = ready
+            ? 100
+            : Math.max(0, 100 - (this.coffeePour / COFFEE_POUR_DURATION) * 100);
+
+        if (this.dom.coffeeCupFill) {
+            this.dom.coffeeCupFill.style.height = fillPercent + '%';
+            this.dom.coffeeCupFill.classList.toggle('ready', ready);
+        }
+        if (this.dom.coffeeCupLabel) {
+            this.dom.coffeeCupLabel.textContent = ready
+                ? 'Готово ☕'
+                : `Наливается... ${Math.ceil(this.coffeePour)}с`;
         }
     }
 
@@ -1077,8 +1385,9 @@ class Game {
                 this.updateBuildingUI(b, totalPassive);
             }
 
-            this.dom.coffeeButton.disabled = this.count < this.coffeeCost;
+            this.dom.coffeeButton.disabled = this.count < this.coffeeCost || this.coffeePour > 0;
             this.dom.coffeeCostText.textContent = formatNumber(this.coffeeCost);
+            this.updateCoffeeCup();
 
             const canPrestige = this.careerLevel >= CAREERS.length - 1 && this.count >= PRESTIGE_COST_PER_SHARE;
             this.dom.prestigeButton.disabled = !canPrestige;
@@ -1125,6 +1434,12 @@ class Game {
                     this.debuffActive = false;
                     this.debuffTimer = 0;
                 }
+            }
+
+            // +++ НОВОЕ: обратный отсчёт до готовности следующей чашки кофе +++
+            if (this.coffeePour > 0) {
+                this.coffeePour -= delta;
+                if (this.coffeePour < 0) this.coffeePour = 0;
             }
 
             if (this.stress < 100) {

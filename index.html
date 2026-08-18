@@ -29,6 +29,17 @@
     <button id="clickButton">Работать!</button>
     <button id="coffeeButton" class="coffee-btn">☕ Выпить кофе (<span id="coffeeCostText">20</span> монет)</button>
 
+    <!-- Наливающаяся чашка кофе -->
+    <div class="coffee-cup-wrap">
+        <div class="coffee-cup">
+            <div class="coffee-cup-inner">
+                <div class="coffee-cup-fill ready" id="coffeeCupFill" style="height: 100%;"></div>
+            </div>
+            <div class="coffee-cup-handle"></div>
+        </div>
+        <span class="coffee-cup-label" id="coffeeCupLabel">Готово ☕</span>
+    </div>
+
     <!-- Блок отображения эффекта кофе -->
     <div id="coffeeEffectContainer" style="display: none; max-width: 300px; margin: 8px auto;">
         <div id="coffeeEffectLabel">☕ Нет эффекта</div>    
@@ -61,9 +72,9 @@
                 <div class="shop-item" id="shop-equip">
                     <div class="item-info">
                         <strong><span id="equipIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🖥</span>
+                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">⌨️</span>
                             Оборудование (Лвл <span id="equipLvl">0</span>)</strong><br>
-                        +0.5 к клику за уровень
+                        +0.2 к клику за уровень
                         <br><span class="source-cps" id="equipClickInfo">Вклад в клик: +0</span>
                         <br><span class="source-cps">Улучшение: <span id="equipUpgradeLvl">0</span></span>
                     </div>
@@ -83,7 +94,7 @@
                         <strong><span id="coffeeMachineIcon"
                                 style="background-color: gray; padding: 2px 6px; border-radius: 4px;">☕</span>
                             Кофе-машина (Лвл <span id="coffeeMachineLvl">0</span>)</strong><br>
-                        +2 к клику за уровень
+                        +3 к клику за уровень
                         <br><span class="source-cps" id="coffeeClickInfo">Вклад в клик: +0</span>
                         <br><span class="source-cps">Улучшение: <span id="coffeeMachineUpgradeLvl">0</span></span>
                     </div>
@@ -104,7 +115,7 @@
                         <strong><span id="secretaryIcon"
                                 style="background-color: gray; padding: 2px 6px; border-radius: 4px;">👔</span> Личный
                             секретарь (Лвл <span id="secretaryLvl">0</span>)</strong><br>
-                        +8 к клику за уровень
+                        +50 к клику за уровень
                         <br><span class="source-cps" id="secretaryClickInfo">Вклад в клик: +0</span>
                         <br><span class="source-cps">Улучшение: <span id="secretaryUpgradeLvl">0</span></span>
                     </div>
@@ -124,7 +135,7 @@
                         <strong><span id="aiComputerIcon"
                                 style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🖥️</span> AI-ЭВМ
                             (Лвл <span id="aiComputerLvl">0</span>)</strong><br>
-                        +50 K к клику за уровень
+                        +30M к клику за уровень
                         <br><span class="source-cps" id="aiComputerClickInfo">Вклад в клик: +0</span>
                         <br><span class="source-cps">Улучшение: <span id="aiComputerUpgradeLvl">0</span></span>
                     </div>
@@ -192,7 +203,7 @@
                         <strong><span id="autoIcon"
                                 style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🤖</span> Отдел
                             автоматизации (Лвл <span id="autoLvl">0</span>)</strong><br>
-                        +5/сек за уровень
+                        +10/сек за уровень
                         <br><span class="source-cps" id="autoCpsInfo">CPS: 0 (0%)</span>
                         <br><span class="source-cps">Улучшение: <span id="autoUpgradeLvl">0</span></span>
                     </div>
@@ -212,7 +223,7 @@
                         <strong><span id="robotIcon"
                                 style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🦾</span>
                             Роботы-помощники (Лвл <span id="robotLvl">0</span>)</strong><br>
-                        +20/сек за уровень
+                        +400/сек за уровень
                         <br><span class="source-cps" id="robotCpsInfo">CPS: 0 (0%)</span>
                         <br><span class="source-cps">Улучшение: <span id="robotUpgradeLvl">0</span></span>
                     </div>
@@ -232,7 +243,7 @@
                         <strong><span id="aiIcon"
                                 style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🧠</span>
                             AI-ассистент (Лвл <span id="aiLvl">0</span>)</strong><br>
-                        +300/сек за уровень
+                        +9.9K/сек за уровень
                         <br><span class="source-cps" id="aiCpsInfo">CPS: 0 (0%)</span>
                         <br><span class="source-cps">Улучшение: <span id="aiUpgradeLvl">0</span></span>
                     </div>
@@ -252,7 +263,7 @@
                         <strong><span id="processingIcon"
                                 style="background-color: gray; padding: 2px 6px; border-radius: 4px;">⚙️</span> Отдел
                             обработки (Лвл <span id="processingLvl">0</span>)</strong><br>
-                        +7000/сек за уровень
+                        +300K/сек за уровень
                         <br><span class="source-cps" id="processingCpsInfo">CPS: 0 (0%)</span>
                         <br><span class="source-cps">Улучшение: <span id="processingUpgradeLvl">0</span></span>
                     </div>
@@ -272,7 +283,7 @@
                         <strong><span id="officeIcon"
                                 style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🏢</span>
                             Собственный офис (Лвл <span id="officeLvl">0</span>)</strong><br>
-                        +400 K/сек за уровень
+                        +10M/сек за уровень
                         <br><span class="source-cps" id="officeCpsInfo">CPS: 0 (0%)</span>
                         <br><span class="source-cps">Улучшение: <span id="officeUpgradeLvl">0</span></span>
                     </div>
