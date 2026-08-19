@@ -11,7 +11,7 @@
 
 <body>
 
-    <h1>💼 Офисный Планктон</h1>
+    <h1><span class="briefcase-icon" id="briefcaseIcon" title="Открыть портфель">💼</span> Офисный Планктон</h1>
     <button id="themeToggle" class="theme-toggle">🌙 Тёмная</button>
     <div id="counter">0</div>
     <div class="cps-display">Доход в секунду: +<span id="cpsDisplay">0</span></div>
@@ -21,16 +21,23 @@
         <div class="stress-fill" id="stressFill"></div>
     </div>
     <div class="career-info">
-        Должность: <span id="careerTitle">Стажёр</span> |
-        Опыт: <span id="expValue">0</span> / <span id="expNeed">100</span>
-        | Акции: <span id="prestigePoints">0</span>
+        <span class="career-badge" id="careerBadge">
+            <span class="career-icon">💼</span>
+            <span class="career-count" id="careerCount">(1/13)</span>
+            <span class="career-name" id="careerName">Стажёр</span>
+            <span class="career-mult" id="careerMult">×1</span>
+        </span>
+    </div>
+    <div class="exp-bar">
+        <div class="exp-fill" id="expFill" style="width: 0%;"></div>
+        <span class="exp-bar-label" id="expBarLabel">0 / 100</span>
     </div>
 
     <button id="clickButton">Работать!</button>
     <button id="coffeeButton" class="coffee-btn">☕ Выпить кофе (<span id="coffeeCostText">20</span> монет)</button>
 
     <!-- Наливающаяся чашка кофе -->
-    <div class="coffee-cup-wrap">
+    <div class="coffee-cup-wrap" id="coffeeCupWrap">
         <div class="coffee-cup">
             <div class="coffee-cup-inner">
                 <div class="coffee-cup-fill ready" id="coffeeCupFill" style="height: 100%;"></div>
@@ -310,6 +317,7 @@
         <div id="prestigeSection" style="display: none;">
             <div style="margin-top: 20px; text-align: center;">
                 <button id="prestigeButton" class="prestige-btn" disabled>🚀 Основать свою корпорацию (Престиж)</button>
+                <span class="prestige-shares">Акции: <span id="prestigePoints">0</span></span>
                 <div class="prestige-info" id="prestigeInfo">
                     Стоимость 1 акции: 5000 монет. Сейчас вы получите 0 акций.
                 </div>

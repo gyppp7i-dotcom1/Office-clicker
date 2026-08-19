@@ -99,6 +99,61 @@ button,
   font-weight: 500;
 }
 
+/* ===== Портфель в заголовке — кликабельный (без изменения внешнего вида) ===== */
+.briefcase-icon {
+  cursor: pointer;
+}
+
+/* Анимация "открытия" портфеля при клике */
+.briefcase-icon.opening {
+  animation: briefcaseOpen 0.5s ease;
+}
+
+@keyframes briefcaseOpen {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.25) rotate(-14deg);
+  }
+  55% {
+    transform: scale(0.92) rotate(10deg);
+  }
+  80% {
+    transform: scale(1.08) rotate(-4deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Страницы, вылетающие из портфеля */
+.briefcase-paper {
+  position: fixed;
+  pointer-events: none;
+  font-size: 22px;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  animation: briefcasePaperFly 0.9s cubic-bezier(0.22, 0.7, 0.4, 1) forwards;
+}
+
+@keyframes briefcasePaperFly {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.5);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(calc(var(--rot) * 0.3)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + 55px)) rotate(var(--rot)) scale(0.7);
+  }
+}
+
 #counter {
   letter-spacing: 0.5px;
   font-size: 48px;
@@ -139,6 +194,41 @@ button,
   background: var(--stress-fill-bg);
   width: 0%;
   transition: width 0.2s;
+}
+
+/* ===== Шкала опыта карьеры ===== */
+.exp-bar {
+  position: relative;
+  width: 300px;
+  height: 20px;
+  background: var(--stress-bar-bg);
+  border-radius: 4px;
+  margin: 0 auto 15px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.exp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #64b5f6, var(--btn-active-bg));
+  width: 0%;
+  transition: width 0.2s;
+}
+
+.exp-bar-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
 }
 
 #clickButton {
@@ -304,6 +394,16 @@ button,
   gap: 4px;
   margin: 8px auto 4px;
   user-select: none;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.coffee-cup-wrap:hover .coffee-cup-inner {
+  filter: brightness(1.08);
+}
+
+.coffee-cup-wrap:active {
+  transform: scale(0.92);
 }
 
 .coffee-cup {
@@ -370,6 +470,19 @@ button,
   margin-top: 10px;
 }
 
+.prestige-shares {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--prestige-btn-bg);
+  background: var(--card-bg);
+  border: 1px solid var(--prestige-btn-bg);
+  border-radius: 6px;
+  vertical-align: middle;
+}
+
 .prestige-info {
   margin-top: 10px;
   font-size: 14px;
@@ -380,6 +493,48 @@ button,
   margin: 10px 0;
   font-size: 16px;
   color: var(--text-primary);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Привлекательный бейдж текущей должности */
+.career-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, var(--btn-active-bg), var(--prestige-btn-bg));
+  color: #ffffff;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-weight: 700;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.career-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.career-count {
+  font-weight: 500;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.career-name {
+  font-size: 14px;
+}
+
+.career-mult {
+  font-size: 12px;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 1px 7px;
+  border-radius: 10px;
 }
 
 /* Чит-блок */
@@ -707,6 +862,16 @@ body {
     height: 16px;
   }
 
+  .exp-bar {
+    width: 100%;
+    max-width: 300px;
+    height: 16px;
+  }
+
+  .exp-bar-label {
+    font-size: 11px;
+  }
+
   #clickButton {
     font-size: 24px;
     padding: 18px 30px;
@@ -810,6 +975,12 @@ body {
     font-size: 15px;
     padding: 12px 20px;
     width: 90%;
+  }
+
+  .prestige-shares {
+    display: block;
+    margin: 8px auto 0;
+    width: fit-content;
   }
 
   .cheat-section {

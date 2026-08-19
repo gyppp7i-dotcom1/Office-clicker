@@ -408,9 +408,11 @@ class Game {
             clickPowerDisplay: document.getElementById('clickPowerDisplay'),
             stressValue: document.getElementById('stressValue'),
             stressFill: document.getElementById('stressFill'),
-            careerTitle: document.getElementById('careerTitle'),
-            expValue: document.getElementById('expValue'),
-            expNeed: document.getElementById('expNeed'),
+            careerCount: document.getElementById('careerCount'),
+            careerName: document.getElementById('careerName'),
+            careerMult: document.getElementById('careerMult'),
+            expFill: document.getElementById('expFill'),
+            expBarLabel: document.getElementById('expBarLabel'),
             prestigePoints: document.getElementById('prestigePoints'),
             prestigeInfo: document.getElementById('prestigeInfo'),
             prestigeButton: document.getElementById('prestigeButton'),
@@ -422,6 +424,7 @@ class Game {
             coffeeEffectFill: document.getElementById('coffeeEffectFill'),
             coffeeCupFill: document.getElementById('coffeeCupFill'),
             coffeeCupLabel: document.getElementById('coffeeCupLabel'),
+            coffeeCupWrap: document.getElementById('coffeeCupWrap'),
             cheatInput: document.getElementById('cheatInput'),
             cheatButton: document.getElementById('cheatButton'),
             cheatClickMultDisplay: document.getElementById('cheatClickMultDisplay'),
@@ -579,6 +582,10 @@ class Game {
         // +++ ИЗМЕНЕНО: передаём событие в handleClick +++
         this.dom.clickButton.addEventListener('click', (e) => this.handleClick(e));
         this.dom.coffeeButton.addEventListener('click', () => this.drinkCoffee());
+        // +++ НОВОЕ: клик по самой чашке тоже наливает/пьёт кофе +++
+        if (this.dom.coffeeCupWrap) {
+            this.dom.coffeeCupWrap.addEventListener('click', () => this.drinkCoffee());
+        }
         this.dom.prestigeButton.addEventListener('click', () => this.prestige());
         this.dom.cheatButton.addEventListener('click', () => this.applyCheat());
 
@@ -617,11 +624,17 @@ class Game {
             icon.addEventListener('click', (e) => this.handleIconClick(e, icon));
         });
 
+        // +++ НОВОЕ: клик по портфелю в заголовке — открывается, вылетают страницы +++
+        const briefcaseIcon = document.getElementById('briefcaseIcon');
+        if (briefcaseIcon) {
+            briefcaseIcon.addEventListener('click', (e) => this.handleBriefcaseClick(e));
+        }
+
         // +++ НОВОЕ: клик по фону страницы – разлетающиеся частицы + тихий стук +++
         // Срабатывает только вне интерактивных элементов, чтобы не мешать основным кнопкам
         document.addEventListener('click', (e) => {
             const interactiveSelector = 'button, input, a, select, textarea, ' +
-                '.quantity-btn, .upgrade-square, span[id$="Icon"], .theme-toggle';
+                '.quantity-btn, .upgrade-square, span[id$="Icon"], .theme-toggle, .coffee-cup-wrap, .briefcase-icon';
             if (e.target.closest(interactiveSelector)) return;
             this.handleBackgroundClick(e);
         });
@@ -845,6 +858,88 @@ class Game {
             console.warn('Эффект фона не сработал:', e);
         }
     }
+
+    // +++ НОВОЕ: клик по портфелю в заголовке — открывается, из него вылетают страницы +++
+    handleBriefcaseClick(event) {
+        try {
+            const icon = event.currentTarget;
+            icon.classList.remove('opening');
+            void icon.offsetWidth; // форсируем reflow, чтобы анимация сыграла заново при повторном клике
+            icon.classList.add('opening');
+
+            const rect = icon.getBoundingClientRect();
+            this.spawnBriefcasePapers(rect.left + rect.width / 2, rect.top + rect.height / 2);
+            this.playBriefcaseSound();
+        } catch (e) {
+            console.warn('Эффект портфеля не сработал:', e);
+        }
+    }
+
+    // +++ НОВОЕ: страницы, вылетающие из открытого портфеля +++
+    spawnBriefcasePapers(x, y) {
+        const paperEmoji = '📄'; // один и тот же лист, без разных смайликов
+        const count = 6 + Math.floor(Math.random() * 3); // 6-8 листов
+
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.6;
+            const distance = 45 + Math.random() * 45;
+            const dx = Math.cos(angle) * distance;
+            const dy = Math.sin(angle) * distance - 15; // немного вверх перед "падением"
+            const rot = (Math.random() - 0.5) * 360;
+
+            const el = document.createElement('div');
+            el.className = 'briefcase-paper';
+            el.textContent = paperEmoji;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.setProperty('--dx', dx + 'px');
+            el.style.setProperty('--dy', dy + 'px');
+            el.style.setProperty('--rot', rot + 'deg');
+
+            document.body.appendChild(el);
+            setTimeout(() => {
+                if (el.parentNode) el.parentNode.removeChild(el);
+            }, 950);
+        }
+    }
+
+    // +++ НОВОЕ: звук открытия портфеля — лёгкий шорох бумаги + щелчок замка +++
+    playBriefcaseSound() {
+        try {
+            const ctx = this.ensureAudioCtx();
+            const duration = 0.14;
+            const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+            }
+
+            const noise = ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'highpass';
+            filter.frequency.value = 2200; // высокие частоты — шорох бумаги, а не глухой стук
+
+            const gainNode = ctx.createGain();
+            gainNode.gain.setValueAtTime(0.045, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+            noise.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            noise.start(ctx.currentTime);
+            noise.stop(ctx.currentTime + duration);
+
+            // короткий щелчок замка портфеля
+            this.playTone(190, 0.045, 'square', 0.035, 0.015);
+        } catch (e) {
+            console.warn('Звук не воспроизведён:', e);
+        }
+    }
+
     getPrestigeBonus() {
         return 1 + (this.prestigePoints * 0.1);
     }
@@ -1217,6 +1312,24 @@ class Game {
         }
     }
 
+    // +++ НОВОЕ: обновление шкалы опыта карьеры +++
+    updateExpBar() {
+        const nextExp = CAREERS[this.careerLevel].nextExp;
+
+        if (isNaN(nextExp)) {
+            // Максимальная должность — шкала заполнена полностью
+            if (this.dom.expFill) this.dom.expFill.style.width = '100%';
+            if (this.dom.expBarLabel) this.dom.expBarLabel.textContent = 'MAX';
+            return;
+        }
+
+        const pct = nextExp > 0 ? Math.max(0, Math.min(100, (this.experience / nextExp) * 100)) : 0;
+        if (this.dom.expFill) this.dom.expFill.style.width = pct + '%';
+        if (this.dom.expBarLabel) {
+            this.dom.expBarLabel.textContent = `${formatNumber(Math.floor(this.experience))} / ${formatNumber(nextExp)}`;
+        }
+    }
+
     // +++ НОВОЕ: обновление визуала "наливающейся" чашки кофе +++
     updateCoffeeCup() {
         const ready = this.coffeePour <= 0;
@@ -1365,10 +1478,11 @@ class Game {
 
             const totalCareers = CAREERS.length;
             const mult = CAREERS[this.careerLevel].clickMult;
-            this.dom.careerTitle.textContent = `${CAREERS[this.careerLevel].title} (${this.careerLevel + 1}/${totalCareers}) ×${formatNumber(CAREERS[this.careerLevel].clickMult)}`;
+            if (this.dom.careerCount) this.dom.careerCount.textContent = `(${this.careerLevel + 1}/${totalCareers})`;
+            if (this.dom.careerName) this.dom.careerName.textContent = CAREERS[this.careerLevel].title;
+            if (this.dom.careerMult) this.dom.careerMult.textContent = `×${formatNumber(mult)}`;
 
-            this.dom.expValue.textContent = formatNumber(Math.floor(this.experience));
-            this.dom.expNeed.textContent = isNaN(CAREERS[this.careerLevel].nextExp) ? 'MAX' : formatNumber(CAREERS[this.careerLevel].nextExp);
+            this.updateExpBar();
             this.dom.prestigePoints.textContent = formatNumber(this.prestigePoints);
 
             this.updateCoffeeEffect();
