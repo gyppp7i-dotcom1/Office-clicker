@@ -406,11 +406,11 @@ class Game {
                 id: 'eduDiscount',
                 name: 'Скидка на образование',
                 icon: '🎓',
-                description: 'Стоимость курсов и их улучшений в 33 раза меньше',
+                description: 'Стоимость курсов и их улучшений в 3333 раза меньше',
                 price: 50e9,   // 50B
                 multiplier: 1,
                 unlockCondition: (game) => game.count >= 5e9,   // 5B
-                effectText: () => 'Курсы и их улучшения дешевле в 33 раза'
+                effectText: () => 'Курсы и их улучшения дешевле в 3333 раза'
             }
         ];
         this.upgrades = upgradeDefs.map(u => ({ ...u, purchased: false, revealed: false }));
@@ -1190,7 +1190,7 @@ class Game {
         const eduDiscountUpgrade = this.upgrades.find(u => u.id === 'eduDiscount');
         const course = this.buildings.get('course');
         if (course) {
-            course.costDiscount = (eduDiscountUpgrade && eduDiscountUpgrade.purchased) ? (1 / 33) : 1;
+            course.costDiscount = (eduDiscountUpgrade && eduDiscountUpgrade.purchased) ? (1 / 3333) : 1;
         }
 
         let baseClickTotal = 1;
