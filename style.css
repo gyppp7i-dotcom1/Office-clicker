@@ -289,6 +289,17 @@ button,
   pointer-events: none;
 }
 
+.post-max-exp-bar { margin-top: -6px; }
+.post-max-exp-fill { background: linear-gradient(90deg, #ab47bc, #7e57c2); }
+.global-income-display { font-size: 13px; color: var(--text-secondary); margin: -4px auto 12px; }
+.peace-display { font-size: 16px; margin: 4px 0 6px; color: #3f7c59; }
+.peace-bar { position: relative; width: 300px; height: 20px; background: var(--stress-bar-bg); border-radius: 10px; margin: 0 auto 5px; overflow: hidden; border: 1px solid var(--border-color); }
+.peace-fill { height: 100%; background: linear-gradient(90deg, #8fd3a9, #4caf8a); width: 0%; transition: width .2s linear; }
+.peace-hint { font-size: 11px; color: var(--text-muted); margin: 0 auto 14px; }
+.yoga-shop-item { border-top: 1px dashed var(--border-color); padding-top: 12px; }
+.mastery-card.prestige-card { border-color: var(--prestige-btn-bg); }
+.mastery-card-tag { display: inline-block; margin-bottom: 5px; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 700; color: var(--prestige-btn-bg); background: var(--bg-primary); border: 1px solid var(--prestige-btn-bg); }
+
 #clickButton {
   font-size: 28px;
   padding: 15px 40px;
@@ -1422,4 +1433,5 @@ button,
 
 @media (max-width: 700px) {
   .mastery-cards-grid { grid-template-columns: 1fr; }
+  .peace-bar, .exp-bar { max-width: calc(100vw - 28px); }
 }

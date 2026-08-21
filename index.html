@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 
+
 <html>
 
 <head>
@@ -8,6 +9,7 @@
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;display=swap"
         rel="stylesheet" />
+
     <link href="style.css" rel="stylesheet" />
 </head>
 
@@ -50,6 +52,18 @@
         <div class="exp-fill" id="expFill" style="width: 0%;"></div>
         <span class="exp-bar-label" id="expBarLabel">0 / 100</span>
     </div>
+    <div class="exp-bar post-max-exp-bar" id="postMaxExpBar" style="display:none;">
+        <div class="exp-fill post-max-exp-fill" id="postMaxExpFill" style="width: 0%;"></div>
+        <span class="exp-bar-label" id="postMaxExpBarLabel">После максимума: 0 / 300M</span>
+    </div>
+    <div class="global-income-display" id="globalIncomeDisplay">Глобальный доход: ×1</div>
+
+    <div class="peace-display" id="peaceDisplay" style="display:none;">Покой: <span id="peaceValue">0</span>%</div>
+    <div class="peace-bar" id="peaceBar" style="display:none;">
+        <div class="peace-fill" id="peaceFill" style="width: 0%;"></div>
+    </div>
+    <div class="peace-hint" id="peaceHint" style="display:none;">Покой начнёт восстанавливаться после 60 секунд без действий.</div>
+
     <button id="clickButton">Работать!</button>
     <button class="coffee-btn" id="coffeeButton">☕ Выпить кофе (<span id="coffeeCostText">20</span> монет)</button>
     <!-- Наливающаяся чашка кофе -->
@@ -313,6 +327,22 @@
                             </button>
                         </div>
                     </div>
+                    <div class="shop-item yoga-shop-item" id="shop-yoga" style="display:none;">
+                        <div class="item-info">
+                            <strong>🧘 Занятия йоги (Ур. <span id="yogaLvl">0</span>)</strong><br />
+                            +1% к скорости заполнения «Покоя» за уровень
+                            <br /><span class="source-cps">Цена следующего занятия: <span id="yogaCost">1 000 000</span></span>
+                            <br /><span class="source-cps">Улучшение йоги: Ур. <span id="yogaUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" id="buyYogaButton" disabled>
+                                Занятие (<span id="yogaBuyPrice">1 000 000</span>)
+                            </button>
+                            <button class="upgrade-btn" id="upgradeYogaButton" disabled>
+                                Улучшить (<span id="yogaUpgradePrice">100 000 000</span>)
+                            </button>
+                        </div>
+                    </div>
                     <div class="shop-item" id="shop-course">
                         <div class="item-info">
                             <strong><span id="courseIcon"
@@ -351,7 +381,7 @@
                     role="button" tabindex="0">KPI: <span id="prestigePoints">0</span></span>
                 <div class="prestige-kpi-details" id="prestigeKpiDetails" style="display: none;"></div>
                 <div class="prestige-info" id="prestigeInfo">
-                     Сейчас вы получите 0 очков KPI.
+                    Сейчас вы получите 0 очков KPI.
                 </div>
             </div>
         </div>
@@ -378,6 +408,12 @@
         <button class="save-btn" id="saveNowButton">💾 Сохранить сейчас</button>
         <button class="save-btn save-btn-danger" id="deleteSaveButton">🗑️ Удалить сохранение</button>
     </div>
+    <script src="utils.js"></script>
+    <script src="config.js"></script>
+    <script src="building.js"></script>
+    <script src="sound.js"></script>
+    <script src="ui-effects.js"></script>
+    <script src="save-manager.js"></script>
     <script src="script.js"></script>
 </body>
 
