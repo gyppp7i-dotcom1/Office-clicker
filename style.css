@@ -89,6 +89,17 @@ h1,
   font-weight: 700;
 }
 
+/* ===== Выравнивание заголовка игры (иконка + текст по центру) ===== */
+h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px auto;
+  line-height: 1.2;
+}
+
 /* Кнопки – полужирные */
 button,
 .upgrade-btn,
@@ -154,11 +165,58 @@ button,
   }
 }
 
+/* ===== Строка баланса: счётчик + монетка ===== */
+.balance-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 10px 0;
+}
+
 #counter {
   letter-spacing: 0.5px;
   font-size: 48px;
-  margin: 10px 0;
+  margin: 0;
   color: var(--text-primary);
+}
+
+/* Монетка баланса — уникально кликабельный элемент со своей анимацией */
+.balance-coin {
+  font-size: 34px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.balance-coin:hover {
+  transform: scale(1.15) rotate(-8deg);
+}
+
+.balance-coin:active {
+  transform: scale(0.85);
+}
+
+/* Анимация "переворота монетки" при клике */
+.balance-coin.coin-spin {
+  animation: coinSpin 0.5s ease;
+}
+
+@keyframes coinSpin {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.3) rotate(180deg);
+  }
+  60% {
+    transform: scale(0.9) rotate(300deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
 }
 
 .cps-display {
@@ -481,6 +539,27 @@ button,
   border: 1px solid var(--prestige-btn-bg);
   border-radius: 6px;
   vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .12s ease, background .15s ease;
+}
+
+.prestige-shares:hover {
+  transform: translateY(-1px);
+  background: var(--bg-secondary);
+}
+
+.prestige-kpi-details {
+  max-width: 340px;
+  margin: 10px auto 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: left;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border: 1px solid var(--prestige-btn-bg);
+  border-radius: 8px;
 }
 
 .prestige-info {
@@ -590,6 +669,129 @@ button,
 .cheat-info span {
   font-weight: bold;
   color: var(--text-primary);
+}
+
+/* ===== Блок локального сохранения ===== */
+.save-section {
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 15px;
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.save-section h3 {
+  margin-top: 0;
+  color: var(--text-primary);
+}
+
+.save-status {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.save-btn {
+  font-size: 14px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin: 4px;
+  background-color: var(--btn-active-bg);
+  color: #ffffff;
+  transition: filter 0.15s ease;
+}
+
+.save-btn:hover {
+  filter: brightness(1.12);
+}
+
+.save-btn-danger {
+  background-color: #d9534f;
+}
+
+/* ===== Модалка офлайн-дохода ===== */
+.offline-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.offline-modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.offline-modal {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-radius: 16px;
+  padding: 28px 32px;
+  max-width: 340px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  transform: scale(0.85) translateY(10px);
+  transition: transform 0.25s ease;
+}
+
+.offline-modal-overlay.visible .offline-modal {
+  transform: scale(1) translateY(0);
+}
+
+.offline-modal-icon {
+  font-size: 46px;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.offline-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.offline-modal-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 22px;
+}
+
+.offline-modal-text strong {
+  color: var(--upgrade-btn-bg);
+  font-size: 17px;
+}
+
+.offline-modal-btn {
+  font-size: 16px;
+  font-weight: 700;
+  padding: 10px 36px;
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 4px var(--btn-primary-shadow);
+  transition: transform 0.05s;
+}
+
+.offline-modal-btn:active {
+  transform: translateY(3px);
+  box-shadow: none;
 }
 
 /* Три колонки */
@@ -844,9 +1046,18 @@ body {
     margin-top: 10px;
   }
 
+  .balance-row {
+    gap: 8px;
+    margin: 6px 0;
+  }
+
   #counter {
     font-size: 36px;
-    margin: 6px 0;
+    margin: 0;
+  }
+
+  .balance-coin {
+    font-size: 26px;
   }
 
   .cps-display,
@@ -998,6 +1209,36 @@ body {
     font-size: 14px;
   }
 
+  .save-section {
+    padding: 12px;
+    margin: 12px 0;
+  }
+
+  .save-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    width: 90%;
+    max-width: 280px;
+    display: block;
+    margin: 6px auto;
+  }
+
+  .offline-modal {
+    padding: 22px 20px;
+  }
+
+  .offline-modal-icon {
+    font-size: 38px;
+  }
+
+  .offline-modal-title {
+    font-size: 16px;
+  }
+
+  .offline-modal-text {
+    font-size: 14px;
+  }
+
   .item-info strong span[id$="Icon"] {
     font-size: 24px !important;
     padding: 4px 10px !important;
@@ -1038,4 +1279,147 @@ button,
 
 .theme-toggle:hover {
   background: var(--bg-secondary);
+}
+
+/* ==============================================================
+   ДОБАВЛЕНО: навигация разделов магазина
+   ============================================================= */
+.shop-section-navigation {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+.shop-section-tab {
+  min-height: 84px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: var(--card-shadow);
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+.shop-section-tab:hover { transform: translateY(-2px); }
+.shop-section-tab.active { border-color: var(--btn-active-bg); background: var(--btn-active-bg); color: var(--btn-active-text); }
+.shop-sections { display: block; }
+.shop-section { display: none; }
+.shop-section.active { display: block; animation: shopSectionIn .18s ease; }
+.shop-section-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 4px 0 16px;
+  color: var(--text-primary);
+}
+.shop-section-grid { display: grid; gap: 4px; }
+.shop-back-button {
+  margin: 18px auto 0;
+  padding: 8px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+@keyframes shopSectionIn { from { opacity: .2; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ==============================================================
+   ДОБАВЛЕНО: Мастерство — карточки в стиле достижений
+   ============================================================= */
+.mastery-cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mastery-cards-grid #upgradesContainer { display: contents; }
+.mastery-card {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 10px 12px;
+  padding: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+  box-shadow: var(--card-shadow);
+  transition: transform .15s ease, opacity .15s ease, border-color .15s ease;
+}
+.mastery-card:hover { transform: translateY(-2px); }
+.mastery-card.pressed { transform: scale(.985); }
+.mastery-card.unaffordable { opacity: .66; }
+.mastery-card.purchased { border-color: var(--btn-active-bg); }
+.mastery-card-icon {
+  width: 58px; height: 58px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 14px;
+  font-size: 32px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+}
+.mastery-card-content { text-align: left; min-width: 0; }
+.mastery-card-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; }
+.mastery-card-description { font-size: 12px; line-height: 1.45; color: var(--text-secondary); }
+.mastery-card-effect { margin-top: 6px; font-size: 11px; color: var(--text-muted); }
+.mastery-card-footer { grid-column: 1 / -1; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.mastery-card-price { font-size: 12px; font-weight:700; color:var(--text-secondary); }
+.mastery-buy-btn {
+  min-width: 118px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--upgrade-btn-bg);
+  color: #fff;
+  cursor:pointer;
+}
+.mastery-buy-btn:disabled { background: var(--upgrade-btn-disabled); cursor:not-allowed; }
+
+/* ==============================================================
+   ДОБАВЛЕНО: достижения
+   ============================================================= */
+.achievements-button {
+  position: fixed;
+  top: 58px;
+  right: 10px;
+  margin: 0;
+  display: block;
+  padding: 7px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 18px;
+  box-shadow: var(--card-shadow);
+  transition: transform .15s ease;
+  z-index: 999;
+}
+.achievements-button:hover { transform: translateY(-2px); }
+.achievements-modal { position: fixed; inset: 0; display: none; z-index: 12000; }
+.achievements-modal.open { display:block; }
+.achievements-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.48); backdrop-filter:blur(7px); }
+.achievements-dialog {
+  position:relative; z-index:1;
+  width:min(720px, calc(100vw - 28px));
+  max-height:min(780px, calc(100vh - 36px));
+  overflow:auto;
+  margin:18px auto;
+  padding:18px;
+  border-radius:16px;
+  background:var(--card-bg);
+  box-shadow:0 18px 55px rgba(0,0,0,.32);
+  color:var(--text-primary);
+  text-align:left;
+}
+.achievements-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.achievements-header h2 { margin:0; font-size:22px; }
+.achievements-progress { margin-top:3px; font-size:12px; color:var(--text-muted); }
+.achievements-close { width:38px; height:38px; border-radius:50%; border:1px solid var(--border-color); background:var(--bg-secondary); color:var(--text-primary); cursor:pointer; font-size:18px; }
+.achievements-list { display:grid; gap:9px; }
+.achievement-card { display:grid; grid-template-columns:46px 1fr 30px; align-items:center; gap:10px; padding:11px; border:1px solid var(--border-color); border-radius:12px; background:var(--bg-secondary); opacity:.55; }
+.achievement-card.unlocked { opacity:1; border-color:var(--btn-active-bg); }
+.achievement-icon { width:46px; height:46px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:var(--bg-primary); font-size:25px; }
+.achievement-body { display:flex; flex-direction:column; gap:3px; }
+.achievement-body strong { font-size:13px; color:var(--text-primary); }
+.achievement-body span { font-size:11px; color:var(--text-secondary); line-height:1.4; }
+.achievement-status { text-align:center; font-size:17px; }
+
+@media (max-width: 700px) {
+  .mastery-cards-grid { grid-template-columns: 1fr; }
 }

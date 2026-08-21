@@ -1,19 +1,37 @@
 <!DOCTYPE html>
+
 <html>
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8" />
     <title>Офисный Планктон: Кликер</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;display=swap"
+        rel="stylesheet" />
+    <link href="style.css" rel="stylesheet" />
 </head>
 
 <body>
-
     <h1><span class="briefcase-icon" id="briefcaseIcon" title="Открыть портфель">💼</span> Офисный Планктон</h1>
-    <button id="themeToggle" class="theme-toggle">🌙 Тёмная</button>
-    <div id="counter">0</div>
+    <button class="theme-toggle" id="themeToggle">🌙 Тёмная</button><button class="achievements-button"
+        id="achievementsButton" title="Достижения">🏆</button>
+    <div aria-hidden="true" class="achievements-modal" id="achievementsModal">
+        <div class="achievements-backdrop" data-close-achievements=""></div>
+        <section aria-labelledby="achievementsTitle" aria-modal="true" class="achievements-dialog" role="dialog">
+            <div class="achievements-header">
+                <div>
+                    <h2 id="achievementsTitle">🏆 Достижения</h2>
+                    <div class="achievements-progress" id="achievementsProgress">0 / 0</div>
+                </div>
+                <button class="achievements-close" id="achievementsClose" title="Закрыть" type="button">✕</button>
+            </div>
+            <div class="achievements-list" id="achievementsList"></div>
+        </section>
+    </div>
+    <div class="balance-row">
+        <span id="counter">0</span>
+        <span class="balance-coin" id="balanceCoin" title="Монетки на балансе">🪙</span>
+    </div>
     <div class="cps-display">Доход в секунду: +<span id="cpsDisplay">0</span></div>
     <div class="click-power-display">Сила клика: <span id="clickPowerDisplay">1</span></div>
     <div class="stress-display">Стресс: <span id="stressValue">0</span>%</div>
@@ -32,10 +50,8 @@
         <div class="exp-fill" id="expFill" style="width: 0%;"></div>
         <span class="exp-bar-label" id="expBarLabel">0 / 100</span>
     </div>
-
     <button id="clickButton">Работать!</button>
-    <button id="coffeeButton" class="coffee-btn">☕ Выпить кофе (<span id="coffeeCostText">20</span> монет)</button>
-
+    <button class="coffee-btn" id="coffeeButton">☕ Выпить кофе (<span id="coffeeCostText">20</span> монет)</button>
     <!-- Наливающаяся чашка кофе -->
     <div class="coffee-cup-wrap" id="coffeeCupWrap">
         <div class="coffee-cup">
@@ -46,17 +62,15 @@
         </div>
         <span class="coffee-cup-label" id="coffeeCupLabel">Готово ☕</span>
     </div>
-
     <!-- Блок отображения эффекта кофе -->
     <div id="coffeeEffectContainer" style="display: none; max-width: 300px; margin: 8px auto;">
-        <div id="coffeeEffectLabel">☕ Нет эффекта</div>    
+        <div id="coffeeEffectLabel">☕ Нет эффекта</div>
         <div class="coffee-effect-bar">
             <div id="coffeeEffectFill"
                 style="width: 0%; height: 100%; background: #4caf50; border-radius: 10px; transition: width 0.2s;">
             </div>
         </div>
     </div>
-
     <!-- Выбор режима покупки -->
     <div class="quantity-selector">
         <span>Купить за раз: </span>
@@ -66,273 +80,290 @@
         <button class="quantity-btn">x100</button>
         <button class="quantity-btn">Макс</button>
     </div>
-
     <div class="shop-container">
-        <div class="shop-title">🛒 Магазин улучшений</div>
-
+        <div class="shop-title">🛒 Магазин</div>
         <!-- Три колонки -->
-        <div class="shop-columns">
-            <!-- Левая колонка: клик-улучшения + зал + курсы -->
-            <div class="shop-column-left">
-                <div class="column-title">💪 Улучшения клика</div>
-                <!-- Оборудование -->
-                <div class="shop-item" id="shop-equip">
-                    <div class="item-info">
-                        <strong><span id="equipIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">⌨️</span>
-                            Оборудование (Лвл <span id="equipLvl">0</span>)</strong><br>
-                        +0.2 к клику за уровень
-                        <br><span class="source-cps" id="equipClickInfo">Вклад в клик: +0</span>
-                        <br><span class="source-cps">Улучшение: <span id="equipUpgradeLvl">0</span></span>
+        <div aria-label="Разделы магазина" class="shop-section-navigation"><button class="shop-section-tab"
+                data-shop-section="workplace" type="button">💼 Рабочее место</button><button class="shop-section-tab"
+                data-shop-section="team" type="button">👥 Команда</button><button class="shop-section-tab"
+                data-shop-section="hobby" type="button">🎯 Хобби</button><button class="shop-section-tab"
+                data-shop-section="mastery" type="button">✨ Мастерство</button></div>
+        <div class="shop-sections">
+            <section class="shop-section" data-shop-section-panel="workplace" id="shopSection-workplace">
+                <div class="shop-section-title">💼 Рабочее место</div>
+                <div class="shop-section-grid">
+                    <div class="shop-item" id="shop-equip">
+                        <div class="item-info">
+                            <strong><span id="equipIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">⌨️</span>
+                                Оборудование (Лвл <span id="equipLvl">0</span>)</strong><br />
+                            +0.2 к клику за уровень
+                            <br /><span class="source-cps" id="equipClickInfo">Вклад в клик: +0</span>
+                            <br /><span class="source-cps">Улучшение: <span id="equipUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeEquip">
+                                Купить (Цена: <span id="equipCost">10</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeEquipMult"
+                                style="background-color: gray;">
+                                Улучшить (<span id="equipMultPrice">1000</span>)
+                            </button>
+                        </div>
                     </div>
-                    <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                        <button id="upgradeEquip" class="upgrade-btn" disabled>
-                            Купить (Цена: <span id="equipCost">10</span>)
-                        </button>
-                        <button id="upgradeEquipMult" class="upgrade-btn" style="background-color: gray;" disabled>
-                            Улучшить (<span id="equipMultPrice">1000</span>)
-                        </button>
+                    <div class="shop-item" id="shop-coffee">
+                        <div class="item-info">
+                            <strong><span id="coffeeMachineIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">☕</span>
+                                Кофе-машина (Лвл <span id="coffeeMachineLvl">0</span>)</strong><br />
+                            +3 к клику за уровень
+                            <br /><span class="source-cps" id="coffeeClickInfo">Вклад в клик: +0</span>
+                            <br /><span class="source-cps">Улучшение: <span id="coffeeMachineUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeCoffeeMachine">
+                                Купить (Цена: <span id="coffeeMachineCost">75</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeCoffeeMachineMult"
+                                style="background-color: gray;">
+                                Улучшить (<span id="coffeeMachineMultPrice">5000</span>)
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Кофе-машина -->
-                <div class="shop-item" id="shop-coffee">
-                    <div class="item-info">
-                        <strong><span id="coffeeMachineIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">☕</span>
-                            Кофе-машина (Лвл <span id="coffeeMachineLvl">0</span>)</strong><br>
-                        +3 к клику за уровень
-                        <br><span class="source-cps" id="coffeeClickInfo">Вклад в клик: +0</span>
-                        <br><span class="source-cps">Улучшение: <span id="coffeeMachineUpgradeLvl">0</span></span>
+                    <div class="shop-item" id="shop-secretary">
+                        <div class="item-info">
+                            <strong><span id="secretaryIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">👔</span>
+                                Личный
+                                секретарь (Лвл <span id="secretaryLvl">0</span>)</strong><br />
+                            +50 к клику за уровень
+                            <br /><span class="source-cps" id="secretaryClickInfo">Вклад в клик: +0</span>
+                            <br /><span class="source-cps">Улучшение: <span id="secretaryUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeSecretary">
+                                Купить (Цена: <span id="secretaryCost">500</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeSecretaryMult"
+                                style="background-color: gray;">
+                                Улучшить (<span id="secretaryMultPrice">20000</span>)
+                            </button>
+                        </div>
                     </div>
-                    <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                        <button id="upgradeCoffeeMachine" class="upgrade-btn" disabled>
-                            Купить (Цена: <span id="coffeeMachineCost">75</span>)
-                        </button>
-                        <button id="upgradeCoffeeMachineMult" class="upgrade-btn" style="background-color: gray;"
-                            disabled>
-                            Улучшить (<span id="coffeeMachineMultPrice">5000</span>)
-                        </button>
+                    <div class="shop-item" id="shop-aiComputer">
+                        <div class="item-info">
+                            <strong><span id="aiComputerIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🖥️</span>
+                                AI-ЭВМ
+                                (Лвл <span id="aiComputerLvl">0</span>)</strong><br />
+                            +30M к клику за уровень
+                            <br /><span class="source-cps" id="aiComputerClickInfo">Вклад в клик: +0</span>
+                            <br /><span class="source-cps">Улучшение: <span id="aiComputerUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeAIComputer">
+                                Купить (Цена: <span id="aiComputerCost">35 000 000 000</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeAIComputerMult"
+                                style="background-color: gray;">
+                                Улучшить (<span id="aiComputerMultPrice">...</span>)
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Личный секретарь -->
-                <div class="shop-item" id="shop-secretary">
-                    <div class="item-info">
-                        <strong><span id="secretaryIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">👔</span> Личный
-                            секретарь (Лвл <span id="secretaryLvl">0</span>)</strong><br>
-                        +50 к клику за уровень
-                        <br><span class="source-cps" id="secretaryClickInfo">Вклад в клик: +0</span>
-                        <br><span class="source-cps">Улучшение: <span id="secretaryUpgradeLvl">0</span></span>
+                </div><button class="shop-back-button" data-shop-back="true" type="button">← Все разделы</button>
+            </section>
+            <section class="shop-section" data-shop-section-panel="team" id="shopSection-team">
+                <div class="shop-section-title">👥 Команда</div>
+                <div class="shop-section-grid">
+                    <div class="shop-item" id="shop-staff">
+                        <div class="item-info">
+                            <strong><span id="staffIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">👥</span>
+                                Персонал
+                                (Лвл <span id="staffLvl">0</span>)</strong><br />
+                            +1/сек за уровень
+                            <br /><span class="source-cps" id="staffCpsInfo">CPS: 0 (0%)</span>
+                            <br /><span class="source-cps">Улучшение: <span id="staffUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeStaff">
+                                Купить (Цена: <span id="staffCost">15</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeStaffMult"
+                                style="background-color: gray;">
+                                Улучшить (<span id="staffMultPrice">1500</span>)
+                            </button>
+                        </div>
                     </div>
-                    <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                        <button id="upgradeSecretary" class="upgrade-btn" disabled>
-                            Купить (Цена: <span id="secretaryCost">500</span>)
-                        </button>
-                        <button id="upgradeSecretaryMult" class="upgrade-btn" style="background-color: gray;" disabled>
-                            Улучшить (<span id="secretaryMultPrice">20000</span>)
-                        </button>
+                    <div class="shop-item" id="shop-auto">
+                        <div class="item-info">
+                            <strong><span id="autoIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🤖</span>
+                                Отдел
+                                автоматизации (Лвл <span id="autoLvl">0</span>)</strong><br />
+                            +10/сек за уровень
+                            <br /><span class="source-cps" id="autoCpsInfo">CPS: 0 (0%)</span>
+                            <br /><span class="source-cps">Улучшение: <span id="autoUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeAuto">
+                                Купить (Цена: <span id="autoCost">120</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeAutoMult"
+                                style="background-color: gray;">
+                                Улучшить (<span id="autoMultPrice">8000</span>)
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <!-- AI-ЭВМ -->
-                <div class="shop-item" id="shop-aiComputer">
-                    <div class="item-info">
-                        <strong><span id="aiComputerIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🖥️</span> AI-ЭВМ
-                            (Лвл <span id="aiComputerLvl">0</span>)</strong><br>
-                        +30M к клику за уровень
-                        <br><span class="source-cps" id="aiComputerClickInfo">Вклад в клик: +0</span>
-                        <br><span class="source-cps">Улучшение: <span id="aiComputerUpgradeLvl">0</span></span>
+                    <div class="shop-item" id="shop-robot">
+                        <div class="item-info">
+                            <strong><span id="robotIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🦾</span>
+                                Роботы-помощники (Лвл <span id="robotLvl">0</span>)</strong><br />
+                            +400/сек за уровень
+                            <br /><span class="source-cps" id="robotCpsInfo">CPS: 0 (0%)</span>
+                            <br /><span class="source-cps">Улучшение: <span id="robotUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeRobot">
+                                Купить (Цена: <span id="robotCost">1000</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeRobotMult"
+                                style="background-color: gray;">
+                                Улучшить (<span id="robotMultPrice">40000</span>)
+                            </button>
+                        </div>
                     </div>
-                    <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                        <button id="upgradeAIComputer" class="upgrade-btn" disabled>
-                            Купить (Цена: <span id="aiComputerCost">35 000 000 000</span>)
-                        </button>
-                        <button id="upgradeAIComputerMult" class="upgrade-btn" style="background-color: gray;" disabled>
-                            Улучшить (<span id="aiComputerMultPrice">...</span>)
-                        </button>
+                    <div class="shop-item" id="shop-ai">
+                        <div class="item-info">
+                            <strong><span id="aiIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🧠</span>
+                                AI-ассистент (Лвл <span id="aiLvl">0</span>)</strong><br />
+                            +9.9K/сек за уровень
+                            <br /><span class="source-cps" id="aiCpsInfo">CPS: 0 (0%)</span>
+                            <br /><span class="source-cps">Улучшение: <span id="aiUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeAI">
+                                Купить (Цена: <span id="aiCost">15000</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeAIMult" style="background-color: gray;">
+                                Улучшить (<span id="aiMultPrice">700000</span>)
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Дополнительно: Зал и Курсы -->
-                <div class="column-title" style="margin-top:20px;">🧘 Дополнительно</div>
-                <!-- Спортзал -->
-                <div class="shop-item" id="shop-gym">
-                    <div class="item-info">
-                        <strong>🏋️ Спортзал (Лвл <span id="gymLvl">0</span>)</strong><br>
-                        ускоряет снятие стресса на 10% за уровень
+                    <div class="shop-item" id="shop-processing">
+                        <div class="item-info">
+                            <strong><span id="processingIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">⚙️</span>
+                                Отдел
+                                обработки (Лвл <span id="processingLvl">0</span>)</strong><br />
+                            +300K/сек за уровень
+                            <br /><span class="source-cps" id="processingCpsInfo">CPS: 0 (0%)</span>
+                            <br /><span class="source-cps">Улучшение: <span id="processingUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeProcessing">
+                                Купить (Цена: <span id="processingCost">200000</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeProcessingMult"
+                                style="background-color: gray;">
+                                Улучшить (<span id="processingMultPrice">15000000</span>)
+                            </button>
+                        </div>
                     </div>
-                    <button id="upgradeGym" class="upgrade-btn" disabled>
-                        Купить (Цена: <span id="gymCost">50</span>)
-                    </button>
-                </div>
-
-                <!-- Курсы -->
-                <div class="shop-item" id="shop-course">
-                    <div class="item-info">
-                        <strong>📚 Курсы (Лвл <span id="courseLvl">0</span>)</strong><br>
-                        +1 опыта за клик за уровень
+                    <div class="shop-item" id="shop-office">
+                        <div class="item-info">
+                            <strong><span id="officeIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🏢</span>
+                                Собственный офис (Лвл <span id="officeLvl">0</span>)</strong><br />
+                            +10M/сек за уровень
+                            <br /><span class="source-cps" id="officeCpsInfo">CPS: 0 (0%)</span>
+                            <br /><span class="source-cps">Улучшение: <span id="officeUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeOffice">
+                                Купить (Цена: <span id="officeCost">10 000 000 000</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeOfficeMult"
+                                style="background-color: gray;">
+                                Улучшить (<span id="officeMultPrice">...</span>)
+                            </button>
+                        </div>
                     </div>
-                    <button id="upgradeCourse" class="upgrade-btn" disabled>
-                        Купить (Цена: <span id="courseCost">100</span>)
-                    </button>
-                </div>
-            </div>
-
-            <!-- Правая колонка: пассивный доход -->
-            <div class="shop-column-right">
-                <div class="column-title">📈 Пассивный доход</div>
-                <!-- Персонал -->
-                <div class="shop-item" id="shop-staff">
-                    <div class="item-info">
-                        <strong><span id="staffIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">👥</span> Персонал
-                            (Лвл <span id="staffLvl">0</span>)</strong><br>
-                        +1/сек за уровень
-                        <br><span class="source-cps" id="staffCpsInfo">CPS: 0 (0%)</span>
-                        <br><span class="source-cps">Улучшение: <span id="staffUpgradeLvl">0</span></span>
+                </div><button class="shop-back-button" data-shop-back="true" type="button">← Все разделы</button>
+            </section>
+            <section class="shop-section compact-section" data-shop-section-panel="hobby" id="shopSection-hobby">
+                <div class="shop-section-title">🎯 Хобби</div>
+                <div class="shop-section-grid">
+                    <div class="shop-item" id="shop-gym">
+                        <div class="item-info">
+                            <strong><span id="gymIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🏋️</span>
+                                Спортзал (Лвл <span id="gymLvl">0</span>)</strong><br />
+                            ускоряет снятие стресса на 10% за уровень
+                            <br /><span class="source-cps">Улучшение: <span id="gymUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeGym">
+                                Купить (Цена: <span id="gymCost">50</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeGymMult" style="background-color: gray;">
+                                Улучшить (<span id="gymMultPrice">100000</span>)
+                            </button>
+                        </div>
                     </div>
-                    <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                        <button id="upgradeStaff" class="upgrade-btn" disabled>
-                            Купить (Цена: <span id="staffCost">15</span>)
-                        </button>
-                        <button id="upgradeStaffMult" class="upgrade-btn" style="background-color: gray;" disabled>
-                            Улучшить (<span id="staffMultPrice">1500</span>)
-                        </button>
+                    <div class="shop-item" id="shop-course">
+                        <div class="item-info">
+                            <strong><span id="courseIcon"
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">📚</span>
+                                Курсы (Лвл <span id="courseLvl">0</span>)</strong><br />
+                            +1 опыта за клик за уровень
+                            <br /><span class="source-cps" id="courseExpInfo">Опыт за клик: +0</span>
+                            <br /><span class="source-cps">Улучшение: <span id="courseUpgradeLvl">0</span></span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <button class="upgrade-btn" disabled="" id="upgradeCourse">
+                                Купить (Цена: <span id="courseCost">100</span>)
+                            </button>
+                            <button class="upgrade-btn" disabled="" id="upgradeCourseMult"
+                                style="background-color: gray;">
+                                Улучшить (<span id="courseMultPrice">4000</span>)
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Отдел автоматизации -->
-                <div class="shop-item" id="shop-auto">
-                    <div class="item-info">
-                        <strong><span id="autoIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🤖</span> Отдел
-                            автоматизации (Лвл <span id="autoLvl">0</span>)</strong><br>
-                        +10/сек за уровень
-                        <br><span class="source-cps" id="autoCpsInfo">CPS: 0 (0%)</span>
-                        <br><span class="source-cps">Улучшение: <span id="autoUpgradeLvl">0</span></span>
-                    </div>
-                    <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                        <button id="upgradeAuto" class="upgrade-btn" disabled>
-                            Купить (Цена: <span id="autoCost">120</span>)
-                        </button>
-                        <button id="upgradeAutoMult" class="upgrade-btn" style="background-color: gray;" disabled>
-                            Улучшить (<span id="autoMultPrice">8000</span>)
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Роботы-помощники -->
-                <div class="shop-item" id="shop-robot">
-                    <div class="item-info">
-                        <strong><span id="robotIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🦾</span>
-                            Роботы-помощники (Лвл <span id="robotLvl">0</span>)</strong><br>
-                        +400/сек за уровень
-                        <br><span class="source-cps" id="robotCpsInfo">CPS: 0 (0%)</span>
-                        <br><span class="source-cps">Улучшение: <span id="robotUpgradeLvl">0</span></span>
-                    </div>
-                    <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                        <button id="upgradeRobot" class="upgrade-btn" disabled>
-                            Купить (Цена: <span id="robotCost">1000</span>)
-                        </button>
-                        <button id="upgradeRobotMult" class="upgrade-btn" style="background-color: gray;" disabled>
-                            Улучшить (<span id="robotMultPrice">40000</span>)
-                        </button>
-                    </div>
-                </div>
-
-                <!-- AI-ассистент -->
-                <div class="shop-item" id="shop-ai">
-                    <div class="item-info">
-                        <strong><span id="aiIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🧠</span>
-                            AI-ассистент (Лвл <span id="aiLvl">0</span>)</strong><br>
-                        +9.9K/сек за уровень
-                        <br><span class="source-cps" id="aiCpsInfo">CPS: 0 (0%)</span>
-                        <br><span class="source-cps">Улучшение: <span id="aiUpgradeLvl">0</span></span>
-                    </div>
-                    <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                        <button id="upgradeAI" class="upgrade-btn" disabled>
-                            Купить (Цена: <span id="aiCost">15000</span>)
-                        </button>
-                        <button id="upgradeAIMult" class="upgrade-btn" style="background-color: gray;" disabled>
-                            Улучшить (<span id="aiMultPrice">700000</span>)
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Отдел обработки -->
-                <div class="shop-item" id="shop-processing">
-                    <div class="item-info">
-                        <strong><span id="processingIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">⚙️</span> Отдел
-                            обработки (Лвл <span id="processingLvl">0</span>)</strong><br>
-                        +300K/сек за уровень
-                        <br><span class="source-cps" id="processingCpsInfo">CPS: 0 (0%)</span>
-                        <br><span class="source-cps">Улучшение: <span id="processingUpgradeLvl">0</span></span>
-                    </div>
-                    <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                        <button id="upgradeProcessing" class="upgrade-btn" disabled>
-                            Купить (Цена: <span id="processingCost">200000</span>)
-                        </button>
-                        <button id="upgradeProcessingMult" class="upgrade-btn" style="background-color: gray;" disabled>
-                            Улучшить (<span id="processingMultPrice">15000000</span>)
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Собственный офис -->
-                <div class="shop-item" id="shop-office">
-                    <div class="item-info">
-                        <strong><span id="officeIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">🏢</span>
-                            Собственный офис (Лвл <span id="officeLvl">0</span>)</strong><br>
-                        +10M/сек за уровень
-                        <br><span class="source-cps" id="officeCpsInfo">CPS: 0 (0%)</span>
-                        <br><span class="source-cps">Улучшение: <span id="officeUpgradeLvl">0</span></span>
-                    </div>
-                    <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                        <button id="upgradeOffice" class="upgrade-btn" disabled>
-                            Купить (Цена: <span id="officeCost">10 000 000 000</span>)
-                        </button>
-                        <button id="upgradeOfficeMult" class="upgrade-btn" style="background-color: gray;" disabled>
-                            Улучшить (<span id="officeMultPrice">...</span>)
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Новая колонка: Улучшения (квадратики) -->
-            <div class="shop-column-upgrades">
-                <div class="column-title">✨ Улучшения</div>
-                <div id="upgradesContainer"></div>
-            </div>
+                </div><button class="shop-back-button" data-shop-back="true" type="button">← Все разделы</button>
+            </section>
+            <section class="shop-section mastery-section" data-shop-section-panel="mastery" id="shopSection-mastery">
+                <div class="shop-section-title">✨ Мастерство</div>
+                <div class="mastery-cards-grid" id="masteryCardsGrid">
+                    <div id="upgradesContainer"></div>
+                </div><button class="shop-back-button" data-shop-back="true" type="button">← Все разделы</button>
+            </section>
         </div>
-
         <!-- Престиж (по центру внизу) -->
         <!-- Престиж (по центру внизу) -->
         <div id="prestigeSection" style="display: none;">
             <div style="margin-top: 20px; text-align: center;">
-                <button id="prestigeButton" class="prestige-btn" disabled>🚀 Основать свою корпорацию (Престиж)</button>
-                <span class="prestige-shares">Акции: <span id="prestigePoints">0</span></span>
+                <button class="prestige-btn" disabled="" id="prestigeButton">🚀 Основать свою корпорацию
+                    (1Т)</button>
+                <span class="prestige-shares" id="prestigeSharesBadge" title="Нажмите, чтобы посмотреть бонусы"
+                    role="button" tabindex="0">KPI: <span id="prestigePoints">0</span></span>
+                <div class="prestige-kpi-details" id="prestigeKpiDetails" style="display: none;"></div>
                 <div class="prestige-info" id="prestigeInfo">
-                    Стоимость 1 акции: 5000 монет. Сейчас вы получите 0 акций.
+                     Сейчас вы получите 0 очков KPI.
                 </div>
             </div>
         </div>
     </div>
-
     <!-- Чит-режим -->
     <div class="cheat-section">
         <h3>⚡ Чит-режим (тестирование)</h3>
         <label>
             Множитель (1–1М):
-            <input type="number" id="cheatInput" min="1" max="1000000" value="1">
+            <input id="cheatInput" max="1000000" min="1" type="number" value="1" />
         </label>
-        <button id="cheatButton" class="cheat-btn">Применить чит</button>
+        <button class="cheat-btn" id="cheatButton">Применить чит</button>
         <div class="cheat-info">
             Текущие множители:
             Клик ×<span id="cheatClickMultDisplay">1</span>,
@@ -340,7 +371,13 @@
             Опыт ×<span id="cheatExpMultDisplay">1</span>
         </div>
     </div>
-
+    <!-- Локальное сохранение -->
+    <div class="save-section">
+        <h3>💾 Сохранение</h3>
+        <div class="save-status" id="saveStatus">Автосохранение включено</div>
+        <button class="save-btn" id="saveNowButton">💾 Сохранить сейчас</button>
+        <button class="save-btn save-btn-danger" id="deleteSaveButton">🗑️ Удалить сохранение</button>
+    </div>
     <script src="script.js"></script>
 </body>
 

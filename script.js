@@ -3,6 +3,29 @@ const suffixes = [
     '', ' К', ' М', ' В', ' Т', ' Qa', ' Qi',
     ' Sx', ' Sp', ' Oc', ' No', ' Dc'
 ];
+
+// +++ НОВОЕ: склонение русских слов по числу (1 минута / 2 минуты / 5 минут) +++
+function pluralizeRu(n, one, few, many) {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return one;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+    return many;
+}
+
+// +++ НОВОЕ: форматирование длительности офлайн-периода в читаемый вид +++
+function formatOfflineDuration(totalSeconds) {
+    const totalMinutes = Math.max(1, Math.floor(totalSeconds / 60));
+    if (totalMinutes < 60) {
+        return `${totalMinutes} ${pluralizeRu(totalMinutes, 'минуту', 'минуты', 'минут')}`;
+    }
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    const hourStr = `${hours} ${pluralizeRu(hours, 'час', 'часа', 'часов')}`;
+    if (mins === 0) return hourStr;
+    return `${hourStr} ${mins} ${pluralizeRu(mins, 'минуту', 'минуты', 'минут')}`;
+}
+
 // ======================= ПЕРЕКЛЮЧЕНИЕ ТЕМЫ =======================
 document.addEventListener('DOMContentLoaded', () => {
     const toggleBtn = document.getElementById('themeToggle');
@@ -82,6 +105,13 @@ const PRESTIGE_COST_PER_SHARE = 10 ** 12;
 const STRESS_DECAY_BASE = 0.5;
 const STRESS_DECAY_GYM_BONUS = 0.10;
 
+// ======================= ЛОКАЛЬНЫЕ СОХРАНЕНИЯ =======================
+const SAVE_KEY = 'officePlanktonSave';
+const SAVE_VERSION = 1;
+const AUTOSAVE_INTERVAL_MS = 15000; // автосохранение каждые 15 секунд
+const MAX_OFFLINE_SECONDS = 24 * 60 * 60; // офлайн-доход считается не более чем за 24 часа
+const MIN_OFFLINE_SECONDS_TO_NOTIFY = 60; // не показываем плашку за отсутствие короче минуты
+
 const BUILDINGS = {
     equip: {
         name: 'Оборудование', icon: '⌨️', baseCost: 100, costMult: 1.12, clickPower: 0.2,
@@ -135,11 +165,13 @@ const BUILDINGS = {
     },
     gym: {
         name: 'Спортзал', icon: '🏋️', baseCost: 1000, costMult: 10, special: 'gym', alwaysVisible: true,
-        dom: { lvl: 'gymLvl', cost: 'gymCost', btn: 'upgradeGym', shop: 'shop-gym' }
+        hobbyUpgrade: { baseCost: 100000, costMult: 200 },
+        dom: { lvl: 'gymLvl', cost: 'gymCost', btn: 'upgradeGym', multBtn: 'upgradeGymMult', multPrice: 'gymMultPrice', upgradeLvl: 'gymUpgradeLvl', icon: 'gymIcon', shop: 'shop-gym' }
     },
     course: {
         name: 'Курсы', icon: '📚', baseCost: 500, costMult: 4, special: 'course', alwaysVisible: true,
-        dom: { lvl: 'courseLvl', cost: 'courseCost', btn: 'upgradeCourse', shop: 'shop-course' }
+        hobbyUpgrade: { baseCost: 4000, costMult: 4000 },
+        dom: { lvl: 'courseLvl', cost: 'courseCost', btn: 'upgradeCourse', multBtn: 'upgradeCourseMult', multPrice: 'courseMultPrice', upgradeLvl: 'courseUpgradeLvl', icon: 'courseIcon', info: 'courseExpInfo', shop: 'shop-course' }
     }
 };
 
@@ -150,6 +182,7 @@ class Building {
         this.stats = stats;
         this.level = 0;
         this.upgradeLevel = 0;
+        this.costDiscount = 1; // +++ НОВОЕ: множитель скидки на стоимость (напр. "Скидка на образование") +++
 
         this.dom = {};
         if (stats.dom) {
@@ -165,7 +198,7 @@ class Building {
 
     getBulkCost(quantity) {
         const { baseCost, costMult } = this.stats;
-        return Math.ceil(baseCost * (costMult ** this.level) * ((costMult ** quantity - 1) / (costMult - 1)));
+        return Math.ceil(baseCost * this.costDiscount * (costMult ** this.level) * ((costMult ** quantity - 1) / (costMult - 1)));
     }
 
     getMaxAffordable(money) {
@@ -190,6 +223,13 @@ class Building {
             }
         }
         return mult;
+    }
+
+    // +++ НОВОЕ: цена улучшения для "хобби"-покупок (зал/курсы) — без требований по уровню +++
+    getHobbyUpgradePrice() {
+        const cfg = this.stats.hobbyUpgrade;
+        if (!cfg) return null;
+        return Math.ceil(cfg.baseCost * this.costDiscount * Math.pow(cfg.costMult, this.upgradeLevel));
     }
 
     getUpgradeData(targetLvl = this.upgradeLevel + 1) {
@@ -292,10 +332,25 @@ class Game {
 
         this.initBuildings();
         this.initUpgrades();
+
+        // +++ НОВОЕ: сколько секунд игрок отсутствовал (заполняется в loadGame) +++
+        this.pendingOfflineSeconds = 0;
+
+        // +++ НОВОЕ: подтягиваем сохранённый прогресс из localStorage, если он есть +++
+        this.loadedFromSave = this.loadGame();
+
         this.cacheDOM();
         this.bindEvents();
         this.createTooltip();
         this.createUpgradeElements();
+        this.createOfflineModal();
+
+        // +++ НОВОЕ: сразу показываем статус сохранения +++
+        if (this.dom.saveStatus) {
+            this.dom.saveStatus.textContent = this.loadedFromSave
+                ? '✅ Загружено сохранение'
+                : '🆕 Новая игра — автосохранение включено';
+        }
     }
 
     initBuildings() {
@@ -314,7 +369,8 @@ class Game {
                 description: 'Уменьшает накопление стресса на 30%',
                 price: 5000,
                 multiplier: 1,
-                unlockCondition: (game) => game.hasReached100Stress === true
+                unlockCondition: (game) => game.hasReached100Stress === true,
+                effectText: () => '−30% к накоплению стресса'
             },
             {
                 id: 'coach',
@@ -323,7 +379,8 @@ class Game {
                 description: '+5% к эффективности курсов за каждые 10 лвл AI-ассистентов <br> +5% за каждые 5 AI-ЭВМ',
                 price: 2e9,  // 20B
                 multiplier: 1,
-                unlockCondition: (game) => game.careerLevel >= 5   // 5-я должность: "Заместитель руководителя отдела"
+                unlockCondition: (game) => game.careerLevel >= 5,   // 5-я должность: "Заместитель руководителя отдела"
+                effectText: (game) => `+${(Math.round((game.coachMultiplier - 1) * 1000) / 10)}% опыта за клик`
             },
             {
                 id: 'emergence',
@@ -332,7 +389,8 @@ class Game {
                 description: 'Добавляет 1% к доходу за каждые 35 лвл (кроме курсов и зала)',
                 price: 1e9,
                 multiplier: 1,
-                unlockCondition: (game) => game.count >= 200e6
+                unlockCondition: (game) => game.count >= 200e6,
+                effectText: (game) => `+${(Math.round((game.emergenceMultiplier - 1) * 1000) / 10)}% дохода`
             },
             {
                 id: 'emergence2',
@@ -341,7 +399,18 @@ class Game {
                 description: '+1% к доходу за каждое улучшение зданий',
                 price: 10e12,           // 10 Т
                 multiplier: 1,
-                unlockCondition: (game) => game.count >= 500e9   // 500B
+                unlockCondition: (game) => game.count >= 500e9,   // 500B
+                effectText: (game) => `+${(Math.round((game.emergence2Multiplier - 1) * 1000) / 10)}% дохода`
+            },
+            {
+                id: 'eduDiscount',
+                name: 'Скидка на образование',
+                icon: '🎓',
+                description: 'Стоимость курсов и их улучшений в 33 раза меньше',
+                price: 50e9,   // 50B
+                multiplier: 1,
+                unlockCondition: (game) => game.count >= 5e9,   // 5B
+                effectText: () => 'Курсы и их улучшения дешевле в 33 раза'
             }
         ];
         this.upgrades = upgradeDefs.map(u => ({ ...u, purchased: false, revealed: false }));
@@ -404,6 +473,7 @@ class Game {
     cacheDOM() {
         this.dom = {
             counter: document.getElementById('counter'),
+            balanceCoin: document.getElementById('balanceCoin'),
             cpsDisplay: document.getElementById('cpsDisplay'),
             clickPowerDisplay: document.getElementById('clickPowerDisplay'),
             stressValue: document.getElementById('stressValue'),
@@ -416,6 +486,8 @@ class Game {
             prestigePoints: document.getElementById('prestigePoints'),
             prestigeInfo: document.getElementById('prestigeInfo'),
             prestigeButton: document.getElementById('prestigeButton'),
+            prestigeSharesBadge: document.getElementById('prestigeSharesBadge'),
+            prestigeKpiDetails: document.getElementById('prestigeKpiDetails'),
             clickButton: document.getElementById('clickButton'),
             coffeeButton: document.getElementById('coffeeButton'),
             coffeeCostText: document.getElementById('coffeeCostText'),
@@ -431,7 +503,10 @@ class Game {
             cheatPassiveMultDisplay: document.getElementById('cheatPassiveMultDisplay'),
             cheatExpMultDisplay: document.getElementById('cheatExpMultDisplay'),
             upgradesContainer: document.getElementById('upgradesContainer'),
-            prestigeSection: document.getElementById('prestigeSection')
+            prestigeSection: document.getElementById('prestigeSection'),
+            saveStatus: document.getElementById('saveStatus'),
+            saveNowButton: document.getElementById('saveNowButton'),
+            deleteSaveButton: document.getElementById('deleteSaveButton')
         };
         for (const [key, el] of Object.entries(this.dom)) {
             if (!el) console.warn(`DOM элемент "${key}" не найден`);
@@ -587,7 +662,36 @@ class Game {
             this.dom.coffeeCupWrap.addEventListener('click', () => this.drinkCoffee());
         }
         this.dom.prestigeButton.addEventListener('click', () => this.prestige());
+
+        // +++ НОВОЕ: клик по плашке KPI показывает/скрывает описание бонусов +++
+        if (this.dom.prestigeSharesBadge) {
+            this.dom.prestigeSharesBadge.addEventListener('click', () => this.toggleKpiDetails());
+            this.dom.prestigeSharesBadge.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.toggleKpiDetails();
+                }
+            });
+        }
         this.dom.cheatButton.addEventListener('click', () => this.applyCheat());
+
+        // +++ НОВОЕ: ручное сохранение и удаление сохранения +++
+        if (this.dom.saveNowButton) {
+            this.dom.saveNowButton.addEventListener('click', () => {
+                const ok = this.saveGame();
+                this.updateSaveStatus(ok ? '✅ Сохранено вручную' : '⚠️ Не удалось сохранить');
+                setTimeout(() => this.updateSaveStatus(), 2000);
+            });
+        }
+        if (this.dom.deleteSaveButton) {
+            this.dom.deleteSaveButton.addEventListener('click', () => {
+                const confirmed = window.confirm('Удалить сохранение и начать игру заново? Это действие необратимо.');
+                if (!confirmed) return;
+                this.deleteSave();
+                this.hardReset();
+                this.updateSaveStatus('🗑️ Сохранение удалено. Начинаем заново.');
+            });
+        }
 
         for (const [id, b] of this.buildings) {
             if (b.dom.btn) {
@@ -620,7 +724,10 @@ class Game {
         document.querySelector('.quantity-btn')?.classList.add('active');
 
         // +++ НОВОЕ: приятный клик по иконкам зданий (просто для удовольствия, без эффекта на игру) +++
-        document.querySelectorAll('span[id$="Icon"]').forEach(icon => {
+        // ВАЖНО: портфель (id="briefcaseIcon") тоже подходит под селектор span[id$="Icon"],
+        // поэтому явно исключаем его — у портфеля свой собственный эффект (см. ниже), и нам
+        // не нужны здесь лишние искорки-смайлики и их звук поверх звука портфеля.
+        document.querySelectorAll('span[id$="Icon"]:not(#briefcaseIcon)').forEach(icon => {
             icon.addEventListener('click', (e) => this.handleIconClick(e, icon));
         });
 
@@ -630,11 +737,16 @@ class Game {
             briefcaseIcon.addEventListener('click', (e) => this.handleBriefcaseClick(e));
         }
 
+        // +++ НОВОЕ: монетка рядом с балансом — уникально кликабельна, со своим звуком +++
+        if (this.dom.balanceCoin) {
+            this.dom.balanceCoin.addEventListener('click', (e) => this.handleBalanceCoinClick(e));
+        }
+
         // +++ НОВОЕ: клик по фону страницы – разлетающиеся частицы + тихий стук +++
         // Срабатывает только вне интерактивных элементов, чтобы не мешать основным кнопкам
         document.addEventListener('click', (e) => {
             const interactiveSelector = 'button, input, a, select, textarea, ' +
-                '.quantity-btn, .upgrade-square, span[id$="Icon"], .theme-toggle, .coffee-cup-wrap, .briefcase-icon';
+                '.quantity-btn, .upgrade-square, span[id$="Icon"], .theme-toggle, .coffee-cup-wrap, .briefcase-icon, .balance-coin';
             if (e.target.closest(interactiveSelector)) return;
             this.handleBackgroundClick(e);
         });
@@ -940,8 +1052,93 @@ class Game {
         }
     }
 
+    // +++ НОВОЕ: клик по монетке рядом с балансом — уникальный эффект, на игру не влияет +++
+    handleBalanceCoinClick(event) {
+        try {
+            const coin = event.currentTarget;
+            coin.classList.remove('coin-spin');
+            void coin.offsetWidth; // форсируем reflow, чтобы анимация сыграла заново при повторном клике
+            coin.classList.add('coin-spin');
+
+            const rect = coin.getBoundingClientRect();
+            this.spawnCoinSparkle(rect.left + rect.width / 2, rect.top);
+
+            this.playBalanceCoinSound();
+        } catch (e) {
+            console.warn('Эффект монетки не сработал:', e);
+        }
+    }
+
+    // +++ НОВОЕ: искорка-монетка, всплывающая при клике по балансу +++
+    spawnCoinSparkle(x, y) {
+        const symbols = ['🪙', '✨'];
+        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+
+        const el = document.createElement('div');
+        el.className = 'icon-sparkle';
+        el.textContent = symbol;
+
+        const offsetX = (Math.random() - 0.5) * 30;
+        el.style.left = (x + offsetX) + 'px';
+        el.style.top = (y - 6) + 'px';
+
+        document.body.appendChild(el);
+
+        setTimeout(() => {
+            if (el.parentNode) el.parentNode.removeChild(el);
+        }, 700);
+    }
+
+    // +++ НОВОЕ: уникальный звенящий "динь" монетки — не похож ни на один другой звук в игре +++
+    playBalanceCoinSound() {
+        try {
+            this.playTone(1567.98, 0.05, 'square', 0.05, 0);      // G6
+            this.playTone(2093.00, 0.09, 'triangle', 0.06, 0.045); // C7
+            this.playTone(2637.02, 0.12, 'sine', 0.04, 0.09);      // E7 — переливчатый хвостик
+        } catch (e) {
+            console.warn('Звук не воспроизведён:', e);
+        }
+    }
+
     getPrestigeBonus() {
         return 1 + (this.prestigePoints * 0.1);
+    }
+
+    // +++ НОВОЕ: бонус к опыту от очков KPI (1 KPI = +2% к опыту) +++
+    getPrestigeExpBonus() {
+        return 1 + (this.prestigePoints * 0.02);
+    }
+
+    // +++ НОВОЕ: сколько опыта даёт один клик (используется и для начисления, и для отображения в магазине) +++
+    getExpPerClick() {
+        const course = this.buildings.get('course');
+        const courseLvl = course ? course.level : 0;
+        const courseUpgradeLvl = course ? course.upgradeLevel : 0;
+        const courseEffectMult = Math.pow(2, courseUpgradeLvl);
+        const prestigeExpBonus = this.getPrestigeExpBonus();
+        return (1 + courseLvl) * this.cheat.exp * this.coachMultiplier * courseEffectMult * prestigeExpBonus;
+    }
+
+    // +++ НОВОЕ: показать/скрыть описание бонусов KPI +++
+    toggleKpiDetails() {
+        if (!this.dom.prestigeKpiDetails) return;
+        const isOpen = this.dom.prestigeKpiDetails.style.display !== 'none';
+        if (isOpen) {
+            this.dom.prestigeKpiDetails.style.display = 'none';
+        } else {
+            this.updateKpiDetails();
+            this.dom.prestigeKpiDetails.style.display = 'block';
+        }
+    }
+
+    // +++ НОВОЕ: пересчёт текста описания бонусов KPI +++
+    updateKpiDetails() {
+        if (!this.dom.prestigeKpiDetails) return;
+        const incomePercent = Math.round(this.prestigePoints * 10 * 10) / 10;
+        const expPercent = Math.round(this.prestigePoints * 2 * 10) / 10;
+        this.dom.prestigeKpiDetails.innerHTML =
+            `+${formatNumber(incomePercent)}% ко всему доходу<br>` +
+            `+${formatNumber(expPercent)}% к опыту`;
     }
 
     getCoffeeIncomeMultiplier() {
@@ -972,7 +1169,10 @@ class Game {
 
         const gym = this.buildings.get('gym');
         const gymLvl = gym ? gym.level : 0;
-        const decayRate = STRESS_DECAY_BASE * Math.pow(1.1, gymLvl);
+        const gymUpgradeLvl = gym ? gym.upgradeLevel : 0;
+        // +++ НОВОЕ: улучшения зала удваивают эффект самого зала (за каждый уровень улучшения) +++
+        const gymEffectMult = Math.pow(2, gymUpgradeLvl);
+        const decayRate = STRESS_DECAY_BASE * (1 + (Math.pow(1.1, gymLvl) - 1) * gymEffectMult);
         const decayAmount = decayRate * delta;
         this.stress = Math.max(0, this.stress - decayAmount);
     }
@@ -985,6 +1185,14 @@ class Game {
         this.computeEmergenceMultiplier();
         this.computeEmergence2Multiplier();
         this.computeCoachMultiplier();
+
+        // +++ НОВОЕ: скидка на образование — курсы и их улучшения дешевле в 33 раза +++
+        const eduDiscountUpgrade = this.upgrades.find(u => u.id === 'eduDiscount');
+        const course = this.buildings.get('course');
+        if (course) {
+            course.costDiscount = (eduDiscountUpgrade && eduDiscountUpgrade.purchased) ? (1 / 33) : 1;
+        }
+
         let baseClickTotal = 1;
         this.clickComponents = {};
 
@@ -1085,10 +1293,8 @@ class Game {
         this.count += power;
 
         // Опыт
-        const course = this.buildings.get('course');
-        const courseLvl = course ? course.level : 0;
         this.computeCoachMultiplier();
-        this.experience += (1 + courseLvl) * this.cheat.exp * this.coachMultiplier;
+        this.experience += this.getExpPerClick();
         this.checkCareerAdvancement();
 
         // Стресс
@@ -1189,7 +1395,23 @@ class Game {
 
     purchaseUpgrade(id) {
         const b = this.buildings.get(id);
-        if (!b || !b.stats.upgradeType) return;
+        if (!b) return;
+
+        // +++ НОВОЕ: улучшения для зала/курсов — своя, более простая логика цены +++
+        if (b.stats.hobbyUpgrade) {
+            const price = b.getHobbyUpgradePrice();
+            if (this.count >= price) {
+                this.count -= price;
+                b.upgradeLevel++;
+                this.playBuildingUpgradeSound();
+                this.updateUI();
+            } else {
+                this.playInsufficientFundsSound();
+            }
+            return;
+        }
+
+        if (!b.stats.upgradeType) return;
 
         const nextData = b.getUpgradeData(b.upgradeLevel + 1);
         if (!nextData || !nextData.available) return; // недоступно по условию – это не про деньги
@@ -1216,7 +1438,7 @@ class Game {
         this.count -= upgrade.price;
         upgrade.purchased = true;
         // Для стрессоустойчивости и эмерджентности не применяем фиксированный множитель
-        if (upgrade.id !== 'emergence' && upgrade.id !== 'stressResist1' && upgrade.id !== 'emergence2' && upgrade.id !== 'coach') {
+        if (upgrade.id !== 'emergence' && upgrade.id !== 'stressResist1' && upgrade.id !== 'emergence2' && upgrade.id !== 'coach' && upgrade.id !== 'eduDiscount') {
             this.upgradeMultiplier *= upgrade.multiplier;
         }
         this.playGeneralUpgradeSound();
@@ -1235,6 +1457,7 @@ class Game {
         }
 
         this.reset();
+        this.saveGame(); // сохраняем сразу после престижа
     }
 
     reset() {
@@ -1261,6 +1484,215 @@ class Game {
         this.hasReached100Stress = false;
 
         this.updateUI();
+    }
+
+    // +++ НОВОЕ: полный сброс, включая престиж — используется при удалении сохранения +++
+    hardReset() {
+        this.prestigePoints = 0;
+        this.prestigeUnlocked = false;
+        this.reset();
+    }
+
+    // +++ НОВОЕ: собираем данные для сохранения (только долгосрочный прогресс) +++
+    getSaveData() {
+        const buildingsData = {};
+        for (const [id, b] of this.buildings) {
+            buildingsData[id] = { level: b.level, upgradeLevel: b.upgradeLevel };
+        }
+
+        const upgradesData = this.upgrades.map(u => ({
+            id: u.id,
+            purchased: u.purchased,
+            revealed: u.revealed
+        }));
+
+        return {
+            version: SAVE_VERSION,
+            savedAt: Date.now(),
+            count: this.count,
+            stress: this.stress,
+            experience: this.experience,
+            careerLevel: this.careerLevel,
+            prestigePoints: this.prestigePoints,
+            prestigeUnlocked: this.prestigeUnlocked,
+            coffeeCost: this.coffeeCost,
+            buyAmount: this.buyAmount,
+            hasReached100Stress: this.hasReached100Stress,
+            stressHundredLockUsed: this.stressHundredLockUsed,
+            upgradeMultiplier: this.upgradeMultiplier,
+            buildings: buildingsData,
+            upgrades: upgradesData
+        };
+    }
+
+    // +++ НОВОЕ: применяем загруженные данные к текущей игре +++
+    // Короткоживущие эффекты (баффы/дебаффы/налив кофе/блокировка стресса) намеренно
+    // не сохраняются — они привязаны к текущей сессии и сбрасываются на старте.
+    applySaveData(data) {
+        if (!data || typeof data !== 'object') return;
+
+        if (typeof data.count === 'number' && isFinite(data.count)) this.count = data.count;
+        if (typeof data.stress === 'number' && isFinite(data.stress)) this.stress = data.stress;
+        if (typeof data.experience === 'number' && isFinite(data.experience)) this.experience = data.experience;
+        if (typeof data.careerLevel === 'number' && isFinite(data.careerLevel)) this.careerLevel = data.careerLevel;
+        if (typeof data.prestigePoints === 'number' && isFinite(data.prestigePoints)) this.prestigePoints = data.prestigePoints;
+        if (typeof data.prestigeUnlocked === 'boolean') this.prestigeUnlocked = data.prestigeUnlocked;
+        if (typeof data.coffeeCost === 'number' && isFinite(data.coffeeCost)) this.coffeeCost = data.coffeeCost;
+        if (typeof data.buyAmount === 'number' && isFinite(data.buyAmount)) this.buyAmount = data.buyAmount;
+        if (typeof data.hasReached100Stress === 'boolean') this.hasReached100Stress = data.hasReached100Stress;
+        if (typeof data.stressHundredLockUsed === 'boolean') this.stressHundredLockUsed = data.stressHundredLockUsed;
+        if (typeof data.upgradeMultiplier === 'number' && isFinite(data.upgradeMultiplier)) this.upgradeMultiplier = data.upgradeMultiplier;
+
+        if (data.buildings && typeof data.buildings === 'object') {
+            for (const [id, b] of this.buildings) {
+                const saved = data.buildings[id];
+                if (!saved) continue;
+                if (typeof saved.level === 'number' && isFinite(saved.level)) b.level = saved.level;
+                if (typeof saved.upgradeLevel === 'number' && isFinite(saved.upgradeLevel)) b.upgradeLevel = saved.upgradeLevel;
+            }
+        }
+
+        if (Array.isArray(data.upgrades)) {
+            for (const savedU of data.upgrades) {
+                const u = this.upgrades.find(x => x.id === savedU.id);
+                if (!u) continue;
+                u.purchased = !!savedU.purchased;
+                u.revealed = !!savedU.revealed;
+            }
+        }
+    }
+
+    // +++ НОВОЕ: сохранение в localStorage +++
+    saveGame() {
+        try {
+            const data = this.getSaveData();
+            localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+            return true;
+        } catch (e) {
+            console.warn('Не удалось сохранить игру:', e);
+            return false;
+        }
+    }
+
+    // +++ НОВОЕ: загрузка из localStorage. Возвращает true, если сохранение было найдено +++
+    loadGame() {
+        try {
+            const raw = localStorage.getItem(SAVE_KEY);
+            if (!raw) return false;
+            const data = JSON.parse(raw);
+            if (!data || typeof data !== 'object') return false;
+            this.applySaveData(data);
+
+            // +++ НОВОЕ: считаем, сколько секунд прошло с последнего сохранения (для офлайн-дохода) +++
+            if (typeof data.savedAt === 'number' && isFinite(data.savedAt)) {
+                const elapsedSec = Math.max(0, (Date.now() - data.savedAt) / 1000);
+                this.pendingOfflineSeconds = Math.min(elapsedSec, MAX_OFFLINE_SECONDS);
+            }
+
+            return true;
+        } catch (e) {
+            console.warn('Не удалось загрузить сохранение (возможно, оно повреждено):', e);
+            return false;
+        }
+    }
+
+    // +++ НОВОЕ: удаление сохранения +++
+    deleteSave() {
+        try {
+            localStorage.removeItem(SAVE_KEY);
+            return true;
+        } catch (e) {
+            console.warn('Не удалось удалить сохранение:', e);
+            return false;
+        }
+    }
+
+    // +++ НОВОЕ: обновление текста статуса сохранения +++
+    updateSaveStatus(customText) {
+        if (!this.dom.saveStatus) return;
+        if (customText) {
+            this.dom.saveStatus.textContent = customText;
+            return;
+        }
+        const time = new Date().toLocaleTimeString('ru-RU');
+        this.dom.saveStatus.textContent = `Автосохранение включено · последнее сохранение: ${time}`;
+    }
+
+    // +++ НОВОЕ: создаём модалку офлайн-дохода один раз (аналогично createTooltip) +++
+    createOfflineModal() {
+        const overlay = document.createElement('div');
+        overlay.id = 'offlineModalOverlay';
+        overlay.className = 'offline-modal-overlay';
+        overlay.innerHTML = `
+            <div class="offline-modal">
+                <div class="offline-modal-icon">💰</div>
+                <div class="offline-modal-title">С возвращением!</div>
+                <div class="offline-modal-text" id="offlineModalText"></div>
+                <button class="offline-modal-btn" id="offlineModalOkBtn">Окей</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        this.offlineModal = overlay;
+
+        const okBtn = overlay.querySelector('#offlineModalOkBtn');
+        okBtn.addEventListener('click', () => this.hideOfflineModal());
+        // Клик по фону тоже закрывает модалку
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) this.hideOfflineModal();
+        });
+    }
+
+    showOfflineModal(offlineSeconds, earnings) {
+        if (!this.offlineModal) return;
+        const textEl = this.offlineModal.querySelector('#offlineModalText');
+        const durationLabel = formatOfflineDuration(offlineSeconds);
+        if (textEl) {
+            textEl.innerHTML = `Вас не было ${durationLabel}.<br>Вы заработали <strong>${formatNumber(Math.floor(earnings))}</strong> монет.`;
+        }
+        this.offlineModal.classList.add('visible');
+        this.playOfflineEarningsSound();
+    }
+
+    hideOfflineModal() {
+        if (!this.offlineModal) return;
+        this.offlineModal.classList.remove('visible');
+    }
+
+    // +++ НОВОЕ: считаем и начисляем офлайн-доход при запуске игры +++
+    applyOfflineEarnings() {
+        if (!this.pendingOfflineSeconds || this.pendingOfflineSeconds < MIN_OFFLINE_SECONDS_TO_NOTIFY) {
+            this.pendingOfflineSeconds = 0;
+            return;
+        }
+
+        // Пересчитываем доход на основе восстановленных зданий/бонусов
+        this.updateStats();
+
+        const offlineSeconds = this.pendingOfflineSeconds;
+        const earnings = this.passiveIncome * offlineSeconds;
+
+        if (earnings > 0) {
+            this.count += earnings;
+            this.saveGame();
+        }
+        // Плашку показываем только если сумма заметна (от 1 монеты)
+        if (earnings >= 1) {
+            this.showOfflineModal(offlineSeconds, earnings);
+        }
+
+        this.pendingOfflineSeconds = 0;
+    }
+
+    // +++ НОВОЕ: приятный звук "С возвращением!" — восходящий аккорд +++
+    playOfflineEarningsSound() {
+        try {
+            this.playTone(523.25, 0.10, 'triangle', 0.10, 0);     // C5
+            this.playTone(659.25, 0.10, 'triangle', 0.10, 0.09);  // E5
+            this.playTone(783.99, 0.10, 'triangle', 0.10, 0.18);  // G5
+            this.playTone(1046.50, 0.16, 'triangle', 0.11, 0.27); // C6
+        } catch (e) {
+            console.warn('Звук не воспроизведён:', e);
+        }
     }
 
     applyCheat() {
@@ -1382,6 +1814,24 @@ class Game {
         }
     }
 
+    // +++ НОВОЕ: обновление UI улучшений для зала/курсов (иконка + кнопка, без требований по уровню) +++
+    updateHobbyUpgradeUI(b) {
+        const price = b.getHobbyUpgradePrice();
+        if (price === null) return;
+
+        const color = b.upgradeLevel === 0 ? 'gray' : UPGRADE_COLORS[(b.upgradeLevel - 1) % UPGRADE_COLORS.length];
+        if (b.dom.icon) b.dom.icon.style.backgroundColor = color;
+        if (b.dom.upgradeLvl) b.dom.upgradeLvl.textContent = b.upgradeLevel;
+
+        const canAfford = this.count >= price;
+        if (b.dom.multPrice) b.dom.multPrice.textContent = formatNumber(price);
+        if (b.dom.multBtn) {
+            b.dom.multBtn.disabled = !canAfford;
+            b.dom.multBtn.style.backgroundColor = color;
+            b.dom.multBtn.innerHTML = `Улучшить (${formatNumber(price)})`;
+        }
+    }
+
     updateBuildingUI(b, totalPassive) {
         if (b.dom.lvl) b.dom.lvl.textContent = b.level;
 
@@ -1424,6 +1874,8 @@ class Game {
 
         if (b.stats.upgradeType) {
             this.updateUpgradeUI(b);
+        } else if (b.stats.hobbyUpgrade) {
+            this.updateHobbyUpgradeUI(b);
         }
 
         if (b.stats.clickPower && b.dom.info) {
@@ -1433,6 +1885,10 @@ class Game {
             const val = this.passiveComponents[b.id] || 0;
             const pct = totalPassive > 0 ? (val / totalPassive * 100).toFixed(1) : '0.0';
             b.dom.info.textContent = `CPS: ${formatNumber(val)} (${pct}%)`;
+        }
+        // +++ НОВОЕ: сколько опыта в итоге даёт клик (Курсы) +++
+        if (b.stats.special === 'course' && b.dom.info) {
+            b.dom.info.textContent = `Опыт за клик: +${formatNumber(this.getExpPerClick())}`;
         }
     }
 
@@ -1506,7 +1962,13 @@ class Game {
             const canPrestige = this.careerLevel >= CAREERS.length - 1 && this.count >= PRESTIGE_COST_PER_SHARE;
             this.dom.prestigeButton.disabled = !canPrestige;
             const shares = Math.floor((1.01 * Math.cbrt(this.count) * (Math.log10(this.count))) / (120000 + (this.count ** (1 / 6))));
-            this.dom.prestigeInfo.textContent = `Стоимость 1 акции: ${formatNumber(PRESTIGE_COST_PER_SHARE)} монет. Сейчас вы получите ${formatNumber(shares)} акций.`;
+            const requiredCareerTitle = CAREERS[CAREERS.length - 1].title;
+            this.dom.prestigeInfo.textContent = `Требуется должность: ${requiredCareerTitle}. Сейчас вы получите ${formatNumber(shares)} KPI.`;
+
+            // +++ НОВОЕ: если описание бонусов KPI открыто — держим его актуальным +++
+            if (this.dom.prestigeKpiDetails && this.dom.prestigeKpiDetails.style.display !== 'none') {
+                this.updateKpiDetails();
+            }
 
             this.dom.cheatClickMultDisplay.textContent = this.cheat.click;
             this.dom.cheatPassiveMultDisplay.textContent = this.cheat.passive;
@@ -1571,14 +2033,183 @@ class Game {
     }
 
     start() {
+        // +++ НОВОЕ: считаем и начисляем офлайн-доход до первой отрисовки +++
+        this.applyOfflineEarnings();
+
         this.updateUI();
         this.gameLoop();
+
+        // +++ НОВОЕ: автосохранение по таймеру и перед закрытием вкладки +++
+        setInterval(() => {
+            this.saveGame();
+            this.updateSaveStatus();
+        }, AUTOSAVE_INTERVAL_MS);
+
+        window.addEventListener('beforeunload', () => this.saveGame());
+        window.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') this.saveGame();
+        });
+
         console.log('Игра запущена! Стресс будет уменьшаться со временем.');
     }
 }
+
+
+
+// ================================================================
+// ДОБАВЛЕННЫЙ UI-ЛОЙ: разделы магазина, карточки мастерства,
+// достижения. Игровая логика и существующие методы не изменяются.
+// ================================================================
+
+// Карточки глобальных улучшений в стиле достижений.
+Game.prototype.createUpgradeElements = function () {
+    const container = this.dom.upgradesContainer;
+    if (!container) return;
+    container.innerHTML = '';
+    this.upgradeElements = [];
+
+    this.upgrades.forEach((u, index) => {
+        const card = document.createElement('article');
+        card.className = 'mastery-card';
+        card.dataset.id = u.id;
+        card.dataset.index = index;
+        card.innerHTML = `
+            <div class="mastery-card-icon">${u.icon}</div>
+            <div class="mastery-card-content">
+                <div class="mastery-card-title">${u.name}</div>
+                <div class="mastery-card-description">${u.description}</div>
+                <div class="mastery-card-effect" data-effect></div>
+            </div>
+            <div class="mastery-card-footer">
+                <span class="mastery-card-price" data-price></span>
+                <button class="mastery-buy-btn" type="button" data-buy>Купить</button>
+            </div>`;
+
+        card.querySelector('[data-buy]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            card.classList.add('pressed');
+            setTimeout(() => card.classList.remove('pressed'), 180);
+            this.purchaseUpgradeItem(index);
+        });
+
+        container.appendChild(card);
+        this.upgradeElements.push(card);
+    });
+};
+
+Game.prototype.updateUpgradeElements = function () {
+    this.upgrades.forEach((u, index) => {
+        const el = this.upgradeElements[index];
+        if (!el) return;
+
+        if (!u.revealed && u.unlockCondition && u.unlockCondition(this)) {
+            u.revealed = true;
+        }
+
+        el.style.display = u.revealed ? '' : 'none';
+        el.classList.toggle('purchased', u.purchased);
+        el.classList.toggle('unaffordable', !u.purchased && this.count < u.price);
+
+        const price = el.querySelector('[data-price]');
+        const effect = el.querySelector('[data-effect]');
+        const buy = el.querySelector('[data-buy]');
+
+        if (u.purchased) {
+            price.textContent = '✓ Куплено';
+            buy.textContent = 'Куплено';
+            buy.disabled = true;
+            effect.textContent = u.effectText ? `Сейчас: ${u.effectText(this)}` : 'Способность активна';
+        } else {
+            price.textContent = `Цена: ${formatNumber(u.price)}`;
+            buy.textContent = 'Купить';
+            buy.disabled = this.count < u.price;
+            effect.textContent = u.required ? `Требуется уровень: ${formatNumber(u.required)}` : '';
+        }
+    });
+};
+
+function initShopSectionsUI() {
+    const container = document.querySelector('.shop-container');
+    if (!container) return;
+    const tabs = [...container.querySelectorAll('.shop-section-tab')];
+    const panels = [...container.querySelectorAll('[data-shop-section-panel]')];
+
+    const open = (id) => {
+        container.classList.add('section-open');
+        tabs.forEach(t => t.classList.toggle('active', t.dataset.shopSection === id));
+        panels.forEach(p => p.classList.toggle('active', p.dataset.shopSectionPanel === id));
+    };
+    const close = () => {
+        container.classList.remove('section-open');
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+    };
+
+    tabs.forEach(t => t.addEventListener('click', () => open(t.dataset.shopSection)));
+    container.querySelectorAll('[data-shop-back]').forEach(b => b.addEventListener('click', close));
+    close();
+}
+
+function initAchievementsUI(game) {
+    const modal = document.getElementById('achievementsModal');
+    const list = document.getElementById('achievementsList');
+    const button = document.getElementById('achievementsButton');
+    const close = document.getElementById('achievementsClose');
+    const progress = document.getElementById('achievementsProgress');
+    if (!modal || !list || !button) return;
+
+    const achievements = [
+        { icon:'👣', name:'Первый шаг', description:'Нажать кнопку «Работать!» хотя бы один раз.', check:g => g.count > 0 || g.experience > 0 },
+        { icon:'💼', name:'Карьерист', description:'Получить должность не ниже менеджера.', check:g => g.careerLevel >= 3 },
+        { icon:'👥', name:'Начальник', description:'Купить хотя бы одну единицу пассивного дохода.', check:g => ['staff','auto','robot','ai','processing','office'].some(id => (g.buildings.get(id)?.level || 0) > 0) },
+        { icon:'😵', name:'Предел возможностей', description:'Достичь 100% стресса.', check:g => g.hasReached100Stress === true },
+        { icon:'✨', name:'Мастер своего дела', description:'Купить хотя бы одно улучшение Мастерства.', check:g => g.upgrades.some(u => u.purchased) },
+        { icon:'🚀', name:'Корпорация', description:'Совершить престиж.', check:g => g.prestigePoints > 0 },
+    ];
+
+    list.innerHTML = '';
+    const els = achievements.map(a => {
+        const el = document.createElement('article');
+        el.className = 'achievement-card locked';
+        el.innerHTML = `<div class="achievement-icon">${a.icon}</div><div class="achievement-body"><strong>${a.name}</strong><span>${a.description}</span></div><div class="achievement-status">🔒</div>`;
+        list.appendChild(el);
+        return el;
+    });
+
+    const refresh = () => {
+        let unlocked = 0;
+        achievements.forEach((a, i) => {
+            const done = !!a.check(game);
+            if (done) unlocked++;
+            els[i].classList.toggle('unlocked', done);
+            els[i].classList.toggle('locked', !done);
+            els[i].querySelector('.achievement-status').textContent = done ? '✓' : '🔒';
+        });
+        progress.textContent = `${unlocked} / ${achievements.length}`;
+    };
+
+    const setOpen = (value) => {
+        modal.classList.toggle('open', value);
+        modal.setAttribute('aria-hidden', value ? 'false' : 'true');
+        if (value) refresh();
+    };
+    button.addEventListener('click', () => setOpen(true));
+    close?.addEventListener('click', () => setOpen(false));
+    modal.addEventListener('click', e => { if (e.target.matches('[data-close-achievements]')) setOpen(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
+    setInterval(refresh, 500);
+}
+
+function initAddedUI(game) {
+    initShopSectionsUI();
+    initAchievementsUI(game);
+}
+
+// Запускаем только добавленные интерфейсные функции после существующей инициализации.
 
 // ======================= ЗАПУСК =======================
 document.addEventListener('DOMContentLoaded', () => {
     const game = new Game();
     game.start();
+    initAddedUI(game);
 });
