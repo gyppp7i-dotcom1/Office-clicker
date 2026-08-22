@@ -84,7 +84,7 @@ const BUILDINGS = {
         dom: { lvl: 'secretaryLvl', cost: 'secretaryCost', btn: 'upgradeSecretary', multBtn: 'upgradeSecretaryMult', multPrice: 'secretaryMultPrice', upgradeLvl: 'secretaryUpgradeLvl', icon: 'secretaryIcon', info: 'secretaryClickInfo', shop: 'shop-secretary' }
     },
     aiComputer: {
-        name: 'AI-ЭВМ', icon: '🖥️', baseCost: 1e10, costMult: 1.3, clickPower: 30 * 10 ** 6,
+        name: 'AI-ЭВМ', icon: '🖥️', baseCost: 1e10, costMult: 1.3, clickPower: 3 * 10 ** 6,
         upgradeType: 'aiComputer',
         dom: { lvl: 'aiComputerLvl', cost: 'aiComputerCost', btn: 'upgradeAIComputer', multBtn: 'upgradeAIComputerMult', multPrice: 'aiComputerMultPrice', upgradeLvl: 'aiComputerUpgradeLvl', icon: 'aiComputerIcon', info: 'aiComputerClickInfo', shop: 'shop-aiComputer' }
     },
@@ -133,7 +133,7 @@ const BUILDINGS = {
         icon: '🏢',
         baseCost: 18000e15,      // 900 Qa × 20
         costMult: 1.4,
-        cps: 50e9,            // 15 Qa
+        cps: 100e9,            // 15 Qa
         upgradeType: 'standard',
         alwaysVisible: false,
         dom: {
