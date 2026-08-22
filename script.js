@@ -2,6 +2,42 @@
 
 // ======================= ПЕРЕКЛЮЧЕНИЕ ТЕМЫ =======================
 document.addEventListener('DOMContentLoaded', () => {
+    (function initEntryOverlay() {
+        const overlay = document.getElementById('entryOverlay');
+        if (!overlay) return;
+
+        // Если нужно показывать только один раз – раскомментируйте строки с localStorage
+        /*
+        if (localStorage.getItem('entryShown') === 'true') {
+            overlay.style.display = 'none';
+            return;
+        }
+        */
+
+        requestAnimationFrame(() => {
+            overlay.classList.add('visible');
+        });
+
+        const closeOverlay = () => {
+            if (overlay.classList.contains('fade-out')) return;
+            overlay.classList.remove('visible');
+            overlay.classList.add('fade-out');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 600);
+            // localStorage.setItem('entryShown', 'true');
+        };
+
+        overlay.addEventListener('click', closeOverlay);
+        overlay.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.key === 'Enter') {
+                e.preventDefault();
+                closeOverlay();
+            }
+        });
+        overlay.setAttribute('tabindex', '0');
+        overlay.focus();
+    })();
     const toggleBtn = document.getElementById('themeToggle');
     // Проверяем сохранённую тему
     const savedTheme = localStorage.getItem('theme') || 'light';

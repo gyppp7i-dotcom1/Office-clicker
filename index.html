@@ -14,6 +14,15 @@
 </head>
 
 <body>
+    <!-- Затемнение при входе -->
+    <div id="entryOverlay" class="entry-overlay">
+        <div class="entry-content">
+            <div class="entry-logo">💼</div>
+            <h1 class="entry-title">Офисный Планктон</h1>
+            <p class="entry-subtitle">Кликер</p>
+            <span class="entry-hint">Нажмите в любом месте, чтобы начать</span>
+        </div>
+    </div>
     <h1><span class="briefcase-icon" id="briefcaseIcon" title="Открыть портфель">💼</span> Офисный Планктон</h1>
     <button class="theme-toggle" id="themeToggle">🌙 Тёмная</button><button class="achievements-button"
         id="achievementsButton" title="Достижения">🏆</button>
@@ -310,10 +319,10 @@
                     <div class="shop-item" id="shop-dataCenter">
                         <div class="item-info">
                             <strong><span id="dataCenterIcon"
-                                style="background-color: gray; padding: 2px 6px; border-radius: 4px;">
-                                <img src="data-center.png" alt="Дата-центр">
-                            </span>
-                            Дата-центр (Лвл <span id="dataCenterLvl">0</span>)</strong><br />
+                                    style="background-color: gray; padding: 2px 6px; border-radius: 4px;">
+                                    <img src="data-center.png" alt="Дата-центр">
+                                </span>
+                                Дата-центр (Лвл <span id="dataCenterLvl">0</span>)</strong><br />
                             +50B/сек за уровень
                             <br /><span class="source-cps" id="dataCenterCpsInfo">CPS: 0 (0%)</span>
                             <br /><span class="source-cps">Улучшение: <span id="dataCenterUpgradeLvl">0</span></span>
@@ -440,6 +449,16 @@
         <button class="save-btn" id="saveNowButton">💾 Сохранить сейчас</button>
         <button class="save-btn save-btn-danger" id="deleteSaveButton">🗑️ Удалить сохранение</button>
     </div>
+    <audio id="bgMusic" loop preload="auto">
+        <source src="CliclerOffice.mp3" type="audio/mpeg">
+    </audio>
+    <label class="music-volume">
+        🔊
+        <input id="musicVolume" type="range" min="0" max="1" step="0.01" value="0.25">
+    </label>
+    <button id="musicToggle" class="music-toggle" type="button">
+        🎵 Музыка: выкл.
+    </button>
     <script src="utils.js"></script>
     <script src="config.js"></script>
     <script src="building.js"></script>
@@ -447,6 +466,7 @@
     <script src="notifications.js"></script>
     <script src="ui-effects.js"></script>
     <script src="save-manager.js"></script>
+    <script src="music.js"></script>
     <script src="script.js"></script>
 </body>
 
