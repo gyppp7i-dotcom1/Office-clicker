@@ -36,7 +36,7 @@ const BUFF_DURATION = 35;
 const DEBUFF_DURATION = 45;
 const DEBUFF_MALUS = 0.50;
 const DEBUFF_STRESS_MULT = 2;
-const PRESTIGE_COST_PER_SHARE = 10 ** 13;
+const PRESTIGE_COST_PER_SHARE = 5*10 ** 15;
 
 const STRESS_DECAY_BASE = 0.5;
 const STRESS_DECAY_GYM_BONUS = 0.10;
@@ -84,7 +84,7 @@ const BUILDINGS = {
         dom: { lvl: 'secretaryLvl', cost: 'secretaryCost', btn: 'upgradeSecretary', multBtn: 'upgradeSecretaryMult', multPrice: 'secretaryMultPrice', upgradeLvl: 'secretaryUpgradeLvl', icon: 'secretaryIcon', info: 'secretaryClickInfo', shop: 'shop-secretary' }
     },
     aiComputer: {
-        name: 'AI-ЭВМ', icon: '🖥️', baseCost: 1e10, costMult: 1.3, clickPower: 3 * 10 ** 6,
+        name: 'AI-ЭВМ', icon: '🖥️', baseCost: 1e10, costMult: 1.3, clickPower: 10 * 10 ** 6,
         upgradeType: 'aiComputer',
         dom: { lvl: 'aiComputerLvl', cost: 'aiComputerCost', btn: 'upgradeAIComputer', multBtn: 'upgradeAIComputerMult', multPrice: 'aiComputerMultPrice', upgradeLvl: 'aiComputerUpgradeLvl', icon: 'aiComputerIcon', info: 'aiComputerClickInfo', shop: 'shop-aiComputer' }
     },
@@ -133,7 +133,7 @@ const BUILDINGS = {
         icon: '🏢',
         baseCost: 18000e15,      // 900 Qa × 20
         costMult: 1.4,
-        cps: 100e9,            // 15 Qa
+        cps: 50e9,            // 15 Qa
         upgradeType: 'standard',
         alwaysVisible: false,
         dom: {

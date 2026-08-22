@@ -674,6 +674,13 @@ class Game {
     getPrestigeExpBonus() {
         return 1 + (this.prestigePoints * 0.02);
     }
+    // +++ НОВАЯ ФОРМУЛА ПРЕСТИЖА +++
+    getPrestigeEarned(base) {
+        if (base <= 0) return 0;
+        const log = Math.log10(base);
+        if (log <= 0) return 0; // для base < 1 даём 0
+        return Math.floor((1 + log / 10) * Math.cbrt(base) * log / (1.2e6*5));
+    }
 
     // +++ НОВОЕ: сколько опыта даёт один клик (используется и для начисления, и для отображения в магазине) +++
     getExpPerClick() {
@@ -1219,7 +1226,7 @@ class Game {
         }
 
         const base = this.totalEarnedThisPrestige;
-        const earned = Math.floor((1.01 * Math.cbrt(base) * (Math.log10(base))) / (1200000 + (base ** (1 / 6))));
+        const earned = this.getPrestigeEarned(base);
 
         // +++ НОВОЕ: уведомление перед сбросом, показывается один раз +++
         const doPrestige = () => {
@@ -1688,7 +1695,7 @@ class Game {
             const canPrestige = this.careerLevel >= CAREERS.length - 1 && this.totalEarnedThisPrestige >= PRESTIGE_COST_PER_SHARE;
             this.dom.prestigeButton.disabled = !canPrestige;
             const base = Math.max(0, this.totalEarnedThisPrestige);
-            const shares = base > 0 ? Math.floor((1.01 * Math.cbrt(base) * (Math.log10(base))) / (1200000 + (base ** (1 / 6)))) : 0;
+            const shares = this.getPrestigeEarned(base);
             const requiredCareerTitle = CAREERS[CAREERS.length - 1].title;
             this.dom.prestigeInfo.textContent = `Требуется должность: ${requiredCareerTitle}. Сейчас вы получите ${formatNumber(shares)} KPI.`;
 
