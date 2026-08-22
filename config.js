@@ -48,7 +48,7 @@ const COFFEE_MASTER_POUR_DURATION = 1;
 const COFFEE_BUFF_STRENGTH_PER_GYM_LEVEL = 0.02;
 const COFFEE_BUFF_DURATION_PER_GYM_LEVEL = 0.02;
 const YOGA_PURCHASE_BASE_COST = 1e6;
-const YOGA_PURCHASE_COST_MULT = 1000;
+const YOGA_PURCHASE_COST_MULT = 200;
 const YOGA_UPGRADE_COST_MULT = 100; // Улучшение: 100 × базовая цена × 1000^текущий уровень улучшения
 const YOGA_PEACE_SPEED_PER_LEVEL = 0.01;
 const PEACE_FILL_DELAY_MS = 60 * 1000;
@@ -131,9 +131,9 @@ const BUILDINGS = {
     dataCenter: {
         name: 'Дата-центр',
         icon: '🏢',
-        baseCost: 18000e15,      // 900 Qa × 20
+        baseCost: 20000e15,      // 900 Qa × 20
         costMult: 1.4,
-        cps: 50e9,            // 15 Qa
+        cps: 1000e9,            // 15 Qa
         upgradeType: 'standard',
         alwaysVisible: false,
         dom: {
