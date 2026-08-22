@@ -1274,6 +1274,7 @@ class Game {
         this.coffeePour = 0;
         this.buffLevel = 0;
         this.buffTimer = 0;
+        this.globalIncomeMultiplier = 1;
         this.debuffActive = false;
         this.debuffTimer = 0;
         this.upgradeMultiplier = 1;
