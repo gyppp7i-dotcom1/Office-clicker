@@ -18,7 +18,7 @@ const CAREERS = [
 
 const UPGRADE_THRESHOLDS = [10, 25, 50, 75, 100, 150, 200];
 const UPGRADE_COLORS = ['gray', 'green', 'blue', 'purple', 'gold', 'red'];
-const UPGRADE_MULTS = [10, 10, 10, 10, 10, 10, 10];
+const UPGRADE_MULTS = [3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5];
 const NONSTANDARD_UPGRADE_MULTS = [2, 2.5, 2, 2, 2.5, 2, 2];
 
 const UPGRADE_TYPE_PARAMS = {
@@ -36,7 +36,7 @@ const BUFF_DURATION = 35;
 const DEBUFF_DURATION = 45;
 const DEBUFF_MALUS = 0.50;
 const DEBUFF_STRESS_MULT = 2;
-const PRESTIGE_COST_PER_SHARE = 10 ** 12;
+const PRESTIGE_COST_PER_SHARE = 10 ** 13;
 
 const STRESS_DECAY_BASE = 0.5;
 const STRESS_DECAY_GYM_BONUS = 0.10;
@@ -74,17 +74,17 @@ const BUILDINGS = {
         dom: { lvl: 'equipLvl', cost: 'equipCost', btn: 'upgradeEquip', multBtn: 'upgradeEquipMult', multPrice: 'equipMultPrice', upgradeLvl: 'equipUpgradeLvl', icon: 'equipIcon', info: 'equipClickInfo', shop: 'shop-equip' }
     },
     coffeeMachine: {
-        name: 'Кофе-машина', icon: '☕', baseCost: 1000, costMult: 1.14, clickPower: 3,
+        name: 'Кофе-машина', icon: '☕', baseCost: 10000, costMult: 1.14, clickPower: 3,
         upgradeType: 'standard', alwaysVisible: true,
         dom: { lvl: 'coffeeMachineLvl', cost: 'coffeeMachineCost', btn: 'upgradeCoffeeMachine', multBtn: 'upgradeCoffeeMachineMult', multPrice: 'coffeeMachineMultPrice', upgradeLvl: 'coffeeMachineUpgradeLvl', icon: 'coffeeMachineIcon', info: 'coffeeClickInfo', shop: 'shop-coffee' }
     },
     secretary: {
-        name: 'Личный секретарь', icon: '👔', baseCost: 15000, costMult: 1.15, clickPower: 50,
+        name: 'Личный секретарь', icon: '👔', baseCost: 150000, costMult: 1.15, clickPower: 50,
         upgradeType: 'standard',
         dom: { lvl: 'secretaryLvl', cost: 'secretaryCost', btn: 'upgradeSecretary', multBtn: 'upgradeSecretaryMult', multPrice: 'secretaryMultPrice', upgradeLvl: 'secretaryUpgradeLvl', icon: 'secretaryIcon', info: 'secretaryClickInfo', shop: 'shop-secretary' }
     },
     aiComputer: {
-        name: 'AI-ЭВМ', icon: '🖥️', baseCost: 1e9, costMult: 1.3, clickPower: 30 * 10 ** 6,
+        name: 'AI-ЭВМ', icon: '🖥️', baseCost: 1e10, costMult: 1.3, clickPower: 30 * 10 ** 6,
         upgradeType: 'aiComputer',
         dom: { lvl: 'aiComputerLvl', cost: 'aiComputerCost', btn: 'upgradeAIComputer', multBtn: 'upgradeAIComputerMult', multPrice: 'aiComputerMultPrice', upgradeLvl: 'aiComputerUpgradeLvl', icon: 'aiComputerIcon', info: 'aiComputerClickInfo', shop: 'shop-aiComputer' }
     },
@@ -94,27 +94,27 @@ const BUILDINGS = {
         dom: { lvl: 'staffLvl', cost: 'staffCost', btn: 'upgradeStaff', multBtn: 'upgradeStaffMult', multPrice: 'staffMultPrice', upgradeLvl: 'staffUpgradeLvl', icon: 'staffIcon', info: 'staffCpsInfo', shop: 'shop-staff' }
     },
     auto: {
-        name: 'Отдел автоматизации', icon: '🤖', baseCost: 1000, costMult: 1.13, cps: 10,
+        name: 'Отдел автоматизации', icon: '🤖', baseCost: 10000, costMult: 1.13, cps: 10,
         upgradeType: 'standard',
         dom: { lvl: 'autoLvl', cost: 'autoCost', btn: 'upgradeAuto', multBtn: 'upgradeAutoMult', multPrice: 'autoMultPrice', upgradeLvl: 'autoUpgradeLvl', icon: 'autoIcon', info: 'autoCpsInfo', shop: 'shop-auto' }
     },
     robot: {
-        name: 'Роботы-помощники', icon: '🦾', baseCost: 60000, costMult: 1.134, cps: 400,
+        name: 'Роботы-помощники', icon: '🦾', baseCost: 600000, costMult: 1.134, cps: 400,
         upgradeType: 'standard',
         dom: { lvl: 'robotLvl', cost: 'robotCost', btn: 'upgradeRobot', multBtn: 'upgradeRobotMult', multPrice: 'robotMultPrice', upgradeLvl: 'robotUpgradeLvl', icon: 'robotIcon', info: 'robotCpsInfo', shop: 'shop-robot' }
     },
     ai: {
-        name: 'AI-ассистент', icon: '🧠', baseCost: 999999, costMult: 1.17, cps: 9999,
+        name: 'AI-ассистент', icon: '🧠', baseCost: 10999980, costMult: 1.17, cps: 9999,
         upgradeType: 'ai',
         dom: { lvl: 'aiLvl', cost: 'aiCost', btn: 'upgradeAI', multBtn: 'upgradeAIMult', multPrice: 'aiMultPrice', upgradeLvl: 'aiUpgradeLvl', icon: 'aiIcon', info: 'aiCpsInfo', shop: 'shop-ai' }
     },
     processing: {
-        name: 'Отдел обработки', icon: '⚙️', baseCost: 1.5e8, costMult: 1.2, cps: 300000,
+        name: 'Отдел обработки', icon: '⚙️', baseCost: 1.5e9, costMult: 1.2, cps: 300000,
         upgradeType: 'processing',
         dom: { lvl: 'processingLvl', cost: 'processingCost', btn: 'upgradeProcessing', multBtn: 'upgradeProcessingMult', multPrice: 'processingMultPrice', upgradeLvl: 'processingUpgradeLvl', icon: 'processingIcon', info: 'processingCpsInfo', shop: 'shop-processing' }
     },
     office: {
-        name: 'Собственный офис', icon: '🏢', baseCost: 1e10, costMult: 1.35, cps: 1e7,
+        name: 'Собственный офис', icon: '🏢', baseCost: 1e11, costMult: 1.35, cps: 1e7,
         upgradeType: 'office',
         dom: { lvl: 'officeLvl', cost: 'officeCost', btn: 'upgradeOffice', multBtn: 'upgradeOfficeMult', multPrice: 'officeMultPrice', upgradeLvl: 'officeUpgradeLvl', icon: 'officeIcon', info: 'officeCpsInfo', shop: 'shop-office' }
     },
@@ -127,5 +127,25 @@ const BUILDINGS = {
         name: 'Курсы', icon: '📚', baseCost: 500, costMult: 4, special: 'course', alwaysVisible: true,
         hobbyUpgrade: { baseCost: 4000, costMult: 4000 },
         dom: { lvl: 'courseLvl', cost: 'courseCost', btn: 'upgradeCourse', multBtn: 'upgradeCourseMult', multPrice: 'courseMultPrice', upgradeLvl: 'courseUpgradeLvl', icon: 'courseIcon', info: 'courseExpInfo', shop: 'shop-course' }
+    },
+    dataCenter: {
+        name: 'Дата-центр',
+        icon: '🏢',
+        baseCost: 18000e15,      // 900 Qa × 20
+        costMult: 1.4,
+        cps: 50e9,            // 15 Qa
+        upgradeType: 'standard',
+        alwaysVisible: false,
+        dom: {
+            lvl: 'dataCenterLvl',
+            cost: 'dataCenterCost',
+            btn: 'upgradeDataCenter',
+            multBtn: 'upgradeDataCenterMult',
+            multPrice: 'dataCenterMultPrice',
+            upgradeLvl: 'dataCenterUpgradeLvl',
+            icon: 'dataCenterIcon',
+            info: 'dataCenterCpsInfo',
+            shop: 'shop-dataCenter'
+        }
     }
 };

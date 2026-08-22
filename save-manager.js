@@ -17,6 +17,7 @@ function getSaveData(game) {
         version: SAVE_VERSION,
         savedAt: Date.now(),
         count: game.count,
+        totalEarnedThisPrestige: game.totalEarnedThisPrestige,
         stress: game.stress,
         experience: game.experience,
         careerLevel: game.careerLevel,
@@ -50,6 +51,12 @@ function applySaveData(game, data) {
     if (!data || typeof data !== 'object') return;
 
     if (typeof data.count === 'number' && isFinite(data.count)) game.count = data.count;
+    if (typeof data.totalEarnedThisPrestige === 'number' && isFinite(data.totalEarnedThisPrestige)) {
+        game.totalEarnedThisPrestige = Math.max(0, data.totalEarnedThisPrestige);
+    } else {
+        // +++ Совместимость со старыми сейвами: считаем, что уже накоплено хотя бы столько, сколько на балансе +++
+        game.totalEarnedThisPrestige = Math.max(game.totalEarnedThisPrestige || 0, game.count || 0);
+    }
     if (typeof data.stress === 'number' && isFinite(data.stress)) game.stress = data.stress;
     if (typeof data.experience === 'number' && isFinite(data.experience)) game.experience = data.experience;
     if (typeof data.careerLevel === 'number' && isFinite(data.careerLevel)) game.careerLevel = data.careerLevel;

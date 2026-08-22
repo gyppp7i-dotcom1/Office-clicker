@@ -839,16 +839,29 @@ button,
 
 /* Иконки зданий */
 .item-info strong span[id$="Icon"] {
-  font-size: 32px !important;
-  padding: 8px 14px !important;
+  width: 48px !important;
+  height: 48px !important;
+  box-sizing: border-box;
+  font-size: 28px !important;
+  padding: 0 !important;
   border-radius: 10px !important;
-  display: inline-block;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
   margin-right: 6px;
   vertical-align: middle;
   cursor: pointer;
   user-select: none;
   transition: transform 0.15s ease;
+}
+
+.item-info strong span[id$="Icon"] img {
+  max-width: 76%;
+  max-height: 76%;
+  width: auto;
+  height: auto;
+  display: block;
 }
 
 .item-info strong span[id$="Icon"]:hover {
@@ -1251,8 +1264,10 @@ body {
   }
 
   .item-info strong span[id$="Icon"] {
-    font-size: 24px !important;
-    padding: 4px 10px !important;
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 20px !important;
+    padding: 0 !important;
   }
 }
 
@@ -1339,6 +1354,11 @@ button,
 /* ==============================================================
    ДОБАВЛЕНО: Мастерство — карточки в стиле достижений
    ============================================================= */
+
+.mastery-tabs { display:flex; justify-content:center; gap:8px; margin:0 auto 14px; flex-wrap:wrap; }
+.mastery-tab { padding:8px 14px; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-secondary); color:var(--text-primary); cursor:pointer; }
+.mastery-tab.active { background:var(--btn-active-bg); color:var(--btn-active-text); border-color:var(--btn-active-bg); }
+
 .mastery-cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .mastery-cards-grid #upgradesContainer { display: contents; }
 .mastery-card {
@@ -1434,4 +1454,255 @@ button,
 @media (max-width: 700px) {
   .mastery-cards-grid { grid-template-columns: 1fr; }
   .peace-bar, .exp-bar { max-width: calc(100vw - 28px); }
+}
+/* ==============================================================
+   ДОБАВЛЕНО: Система корпоративных уведомлений
+   ============================================================= */
+.notif-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 25000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.notif-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.notif-modal {
+    width: min(420px, calc(100vw - 32px));
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-radius: 16px;
+    padding: 26px 24px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border-color);
+    opacity: 0;
+    transform: translateY(-24px) scale(0.94);
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1.15);
+}
+
+.notif-modal.notif-enter {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.notif-icon {
+    font-size: 42px;
+    margin-bottom: 8px;
+}
+
+.notif-title {
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.notif-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-bottom: 18px;
+}
+
+.notif-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.notif-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.notif-btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.notif-btn-primary {
+    background: var(--btn-active-bg);
+    color: var(--btn-active-text);
+    border-color: var(--btn-active-bg);
+}
+
+@media (max-width: 480px) {
+    .notif-modal {
+        padding: 20px 18px;
+    }
+}
+/* ==============================================================
+   TOAST-УВЕДОМЛЕНИЯ
+   ============================================================== */
+
+:root {
+  --toast-info-bg: #e8f2ff;
+  --toast-info-border: #2196f3;
+  --toast-info-text: #174a7c;
+
+  --toast-success-bg: #e8f7ec;
+  --toast-success-border: #4caf50;
+  --toast-success-text: #246b2a;
+
+  --toast-warning-bg: #fff4dc;
+  --toast-warning-border: #f0ad4e;
+  --toast-warning-text: #805b16;
+}
+
+body.dark-theme {
+  --toast-info-bg: #183653;
+  --toast-info-border: #64b5f6;
+  --toast-info-text: #d8edff;
+
+  --toast-success-bg: #193d25;
+  --toast-success-border: #66bb6a;
+  --toast-success-text: #ddffdf;
+
+  --toast-warning-bg: #4b3818;
+  --toast-warning-border: #ffca62;
+  --toast-warning-text: #ffe8ad;
+}
+
+.toast-container {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 30000;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+
+  width: min(390px, calc(100vw - 24px));
+  pointer-events: none;
+}
+
+.toast {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 13px;
+
+  border: 1px solid var(--border-color);
+  border-left: 4px solid;
+  border-radius: 12px;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  color: var(--text-primary);
+
+  opacity: 0;
+  transform: translateX(35px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+
+  pointer-events: auto;
+}
+
+.toast-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-leaving {
+  opacity: 0;
+  transform: translateX(35px);
+}
+
+.toast-info {
+  background: var(--toast-info-bg);
+  border-left-color: var(--toast-info-border);
+  color: var(--toast-info-text);
+}
+
+.toast-success {
+  background: var(--toast-success-bg);
+  border-left-color: var(--toast-success-border);
+  color: var(--toast-success-text);
+}
+
+.toast-warning {
+  background: var(--toast-warning-bg);
+  border-left-color: var(--toast-warning-border);
+  color: var(--toast-warning-text);
+}
+
+.toast-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.toast-text {
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.toast-close {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: currentColor;
+
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.toast-close:hover {
+  opacity: 1;
+  background: rgba(128, 128, 128, 0.18);
+}
+
+@media (max-width: 600px) {
+  .toast-container {
+    right: 12px;
+    bottom: 12px;
+    width: calc(100vw - 24px);
+  }
+
+  .toast {
+    padding: 10px 11px;
+  }
+
+  .toast-text {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transition: opacity 0.15s ease;
+    transform: none;
+  }
 }

@@ -1,7 +1,13 @@
 // ======================= УТИЛИТЫ =======================
 const suffixes = [
     '', ' К', ' М', ' В', ' Т', ' Qa', ' Qi',
-    ' Sx', ' Sp', ' Oc', ' No', ' Dc'
+    ' Sx', ' Sp', ' Oc', ' No', ' Dc',
+    ' UDc', ' DDc', ' TDc', ' QaDc', ' QiDc', ' SxDc', ' SpDc', ' OcDc', ' NoDc',
+    ' Vg', ' UVg', ' DVg', ' TVg', ' QaVg', ' QiVg', ' SxVg', ' SpVg', ' OcVg', ' NoVg',
+    ' Tg', ' UTg', ' DTg', ' TTg', ' QaTg', ' QiTg', ' SxTg', ' SpTg', ' OcTg', ' NoTg',
+    ' Qd', ' UQd', ' DQd', ' TQd', ' QaQd', ' QiQd', ' SxQd', ' SpQd', ' OcQd', ' NoQd',
+    ' Qn', ' UQn', ' DQn', ' TQn', ' QaQn', ' QiQn', ' SxQn', ' SpQn', ' OcQn', ' NoQn',
+    ' Se'
 ];
 
 function formatNumber(num) {

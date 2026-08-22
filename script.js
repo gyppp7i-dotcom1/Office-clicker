@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 class Game {
     constructor() {
         this.count = 0;
+        this.totalEarnedThisPrestige = 0; // +++ НОВОЕ: суммарный доход за текущий цикл престижа +++
         this.stress = 0;
         this.experience = 0;
         this.careerLevel = 0;
@@ -55,6 +56,7 @@ class Game {
         this.experienceAfterMaxThreshold = POST_MAX_EXP_BASE;
         this.globalIncomeMultiplier = 1;
         this.prestigeUpgradesPurchased = {};
+        this.masteryTab = 'cycle';
         this.coffeePour = 0; // 0 = чашка готова; >0 = сколько секунд ещё наливается
         this.buffLevel = 0;
         this.buffTimer = 0;
@@ -64,7 +66,7 @@ class Game {
         this.cheat = { click: 1, passive: 1, exp: 1 };
         this.lastClickTime = 0;
         this.lastUpdateTime = Date.now();
-        
+
 
         this.coachMultiplier = 1;
         this.emergenceMultiplier = 1;
@@ -107,9 +109,9 @@ class Game {
 
         this.cacheDOM();
         this.bindEvents();
-        
+
         this.createUpgradeElements();
-        
+
 
         // +++ НОВОЕ: сразу показываем статус сохранения +++
         if (this.dom.saveStatus) {
@@ -127,26 +129,27 @@ class Game {
 
     initUpgrades() {
         const upgradeDefs = [
-            { id:'stressResist1', name:'Стрессоустойчивость I', icon:'🛡️', description:'Уменьшает накопление стресса на 30%', price:5000, multiplier:1, unlockCondition:g=>g.hasReached100Stress===true, effectText:()=> '−30% к накоплению стресса' },
-            { id:'coach', name:'ИИ-коуч', icon:'֍', description:'+5% к эффективности курсов за каждые 10 лвл AI-ассистентов <br> +5% за каждые 5 AI-ЭВМ', price:2e9, multiplier:1, unlockCondition:g=>g.careerLevel>=5, effectText:g=>`+${(Math.round((g.coachMultiplier-1)*1000)/10)}% опыта за клик` },
-            { id:'emergence', name:'Эмерджентность', icon:'η', description:'Добавляет 1% к доходу за каждые 35 лвл (кроме курсов и зала)', price:1e9, multiplier:1, unlockCondition:g=>g.count>=200e6, effectText:g=>`+${(Math.round((g.emergenceMultiplier-1)*1000)/10)}% дохода` },
-            { id:'emergence2', name:'Эмерджентность II', icon:'η²', description:'+1% к доходу за каждое улучшение зданий', price:10e12, multiplier:1, unlockCondition:g=>g.count>=500e9, effectText:g=>`+${(Math.round((g.emergence2Multiplier-1)*1000)/10)}% дохода` },
-            { id:'eduDiscount', name:'Скидка на образование', icon:'🎓', description:'Стоимость курсов и их улучшений в 3333 раза меньше', price:50e9, multiplier:1, unlockCondition:g=>g.count>=5e9, effectText:()=> 'Курсы и их улучшения дешевле в 3333 раза' },
-            { id:'coffeeMaster', name:'Кофеман', icon:'☕', description:'1с заваривания; +1% к снятию стресса и +2% к силе/длительности кофе за каждый уровень зала.', price:COFFEE_MASTER_PRICE, multiplier:1, unlockCondition:g=>g.coffeeLoverAchievementUnlocked===true, effectText:g=>`Зал: +${g.getGymLevel()}% к стрессу, +${g.getGymLevel()*2}% к силе и длительности баффа` },
-            { id:'yogaAccess', name:'Записаться на занятие йоги', icon:'🧘', description:'Открывает покупку занятий йоги в разделе «Хобби».', price:1, currency:'kpi', prestige:true, multiplier:1, unlockCondition:g=>g.prestigePoints>0, effectText:()=> 'Доступна йога и шкала «Покой»' }
+            { id: 'stressResist1', name: 'Стрессоустойчивость I', icon: '🛡️', description: 'Уменьшает накопление стресса на 30%', price: 5000, multiplier: 1, unlockCondition: g => g.hasReached100Stress === true, effectText: () => '−30% к накоплению стресса' },
+            { id: 'coach', name: 'ИИ-коуч', icon: '֍', description: '+5% к эффективности курсов за каждые 10 лвл AI-ассистентов <br> +5% за каждые 5 AI-ЭВМ', price: 2e9, multiplier: 1, unlockCondition: g => g.careerLevel >= 5, effectText: g => `+${(Math.round((g.coachMultiplier - 1) * 1000) / 10)}% опыта за клик` },
+            { id: 'emergence', name: 'Эмерджентность', icon: 'η', description: 'Добавляет 1% к доходу за каждые 35 лвл (кроме курсов и зала)', price: 1e9, multiplier: 1, unlockCondition: g => g.count >= 200e6, effectText: g => `+${(Math.round((g.emergenceMultiplier - 1) * 1000) / 10)}% дохода` },
+            { id: 'emergence2', name: 'Эмерджентность II', icon: 'η²', description: '+1% к доходу за каждое улучшение зданий', price: 10e12, multiplier: 1, unlockCondition: g => g.count >= 500e9, effectText: g => `+${(Math.round((g.emergence2Multiplier - 1) * 1000) / 10)}% дохода` },
+            { id: 'eduDiscount', name: 'Скидка на образование', icon: '🎓', description: 'Стоимость курсов и их улучшений в 3333 раза меньше', price: 50e9, multiplier: 1, unlockCondition: g => g.count >= 5e9, effectText: () => 'Курсы и их улучшения дешевле в 3333 раза' },
+            { id: 'coffeeMaster', name: 'Кофеман', icon: '☕', description: '1с заваривания; +1% к снятию стресса и +2% к силе/длительности кофе за каждый уровень зала.', price: COFFEE_MASTER_PRICE, multiplier: 1, unlockCondition: g => g.coffeeLoverAchievementUnlocked === true, effectText: g => `Зал: +${g.getGymLevel()}% к стрессу, +${g.getGymLevel() * 2}% к силе и длительности баффа` },
+            { id: 'yogaAccess', name: 'Записаться на занятие йоги', icon: '🧘', description: 'Открывает покупку занятий йоги в разделе «Хобби».', price: 1, currency: 'kpi', prestige: true, multiplier: 1, unlockCondition: g => g.prestigePoints > 0, effectText: () => 'Доступна йога и шкала «Покой»' },
+            { id: 'govProcurement', name: 'Госзакупка', icon: '🏛️', description: 'Открывает кнопку «Купить всё на максимум» — скупает разом все доступные здания, их улучшения и занятия йоги на весь баланс.', price: 1000, currency: 'kpi', prestige: true, multiplier: 1, unlockCondition: g => g.prestigePoints > 0, effectText: () => 'Доступна кнопка «Купить всё на максимум»' }
         ];
-        this.upgrades=upgradeDefs.map(u=>({...u,purchased:!!(u.prestige&&this.prestigeUpgradesPurchased[u.id]),revealed:false}));
+        this.upgrades = upgradeDefs.map(u => ({ ...u, purchased: !!(u.prestige && this.prestigeUpgradesPurchased[u.id]), revealed: false }));
     }
 
     installBuildingMultiplierOverrides() {
         if (typeof Building === 'undefined' || !Building.prototype) return;
-        Building.prototype.getSourceMultiplier=function(){
-            const level=Math.max(0,Math.floor(Number(this.upgradeLevel)||0));
-            if(level<=0)return 1;
-            if(this.stats?.upgradeType==='standard') return Math.pow(10,level);
-            if(this.stats?.special==='gym'||this.stats?.special==='course'||this.stats?.hobbyUpgrade) return Math.pow(2,level);
-            const legacy=(typeof NONSTANDARD_UPGRADE_MULTS!=='undefined')?NONSTANDARD_UPGRADE_MULTS:[2,2.5,2,2,2.5,2,2];
-            let result=1; for(let i=0;i<level;i++) result*=legacy[Math.min(i,legacy.length-1)]||1; return result;
+        Building.prototype.getSourceMultiplier = function () {
+            const level = Math.max(0, Math.floor(Number(this.upgradeLevel) || 0));
+            if (level <= 0) return 1;
+            // Хобби (зал, курсы) сохраняют прежний множитель ×2 за уровень
+            if (this.stats?.special === 'gym' || this.stats?.special === 'course' || this.stats?.hobbyUpgrade) return Math.pow(2, level);
+            // Все здания разделов «Рабочее место» и «Команда» (включая ai, processing, office, aiComputer, dataCenter) — ×10 за уровень
+            return Math.pow(3.5, level);
         };
     }
 
@@ -227,6 +230,7 @@ class Game {
             peaceFill: document.getElementById('peaceFill'),
             peaceHint: document.getElementById('peaceHint'),
             yogaShop: document.getElementById('shop-yoga'),
+            yogaIcon: document.getElementById('yogaIcon'),
             yogaLvl: document.getElementById('yogaLvl'),
             yogaCost: document.getElementById('yogaCost'),
             yogaBuyPrice: document.getElementById('yogaBuyPrice'),
@@ -254,7 +258,9 @@ class Game {
             cheatPassiveMultDisplay: document.getElementById('cheatPassiveMultDisplay'),
             cheatExpMultDisplay: document.getElementById('cheatExpMultDisplay'),
             upgradesContainer: document.getElementById('upgradesContainer'),
+            prestigeUpgradesContainer: document.getElementById('prestigeUpgradesContainer'),
             prestigeSection: document.getElementById('prestigeSection'),
+            buyAllButton: document.getElementById('buyAllButton'),
             saveStatus: document.getElementById('saveStatus'),
             saveNowButton: document.getElementById('saveNowButton'),
             deleteSaveButton: document.getElementById('deleteSaveButton')
@@ -264,7 +270,7 @@ class Game {
         }
     }
 
-    
+
 
     createUpgradeElements() {
         const container = this.dom.upgradesContainer;
@@ -325,12 +331,12 @@ class Game {
         });
     }
 
-   
 
 
-    
 
-   
+
+
+
 
     bindEvents() {
         // +++ ИЗМЕНЕНО: передаём событие в handleClick +++
@@ -338,6 +344,7 @@ class Game {
         this.dom.coffeeButton.addEventListener('click', () => this.drinkCoffee());
         this.dom.buyYogaButton?.addEventListener('click', () => this.purchaseYogaLesson());
         this.dom.upgradeYogaButton?.addEventListener('click', () => this.purchaseYogaUpgrade());
+        this.dom.buyAllButton?.addEventListener('click', () => this.buyMaxEverything());
         // +++ НОВОЕ: клик по самой чашке тоже наливает/пьёт кофе +++
         if (this.dom.coffeeCupWrap) {
             this.dom.coffeeCupWrap.addEventListener('click', () => this.drinkCoffee());
@@ -356,11 +363,22 @@ class Game {
         }
         this.dom.cheatButton.addEventListener('click', () => this.applyCheat());
 
+        document.querySelectorAll('.mastery-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.masteryTab;
+                if (!tab) return;
+                if (tab === 'prestige' && this.prestigePoints <= 0) return;
+                this.masteryTab = tab;
+                this.updateMasteryTabs();
+                this.createUpgradeElements();
+            });
+        });
+
         // +++ НОВОЕ: ручное сохранение и удаление сохранения +++
         if (this.dom.saveNowButton) {
             this.dom.saveNowButton.addEventListener('click', () => {
                 const ok = saveGame(this);
-                updateSaveStatus(this,ok ? '✅ Сохранено вручную' : '⚠️ Не удалось сохранить');
+                updateSaveStatus(this, ok ? '✅ Сохранено вручную' : '⚠️ Не удалось сохранить');
                 setTimeout(() => updateSaveStatus(this), 2000);
             });
         }
@@ -370,7 +388,7 @@ class Game {
                 if (!confirmed) return;
                 deleteSave();
                 this.hardReset();
-                updateSaveStatus(this,'🗑️ Сохранение удалено. Начинаем заново.');
+                updateSaveStatus(this, '🗑️ Сохранение удалено. Начинаем заново.');
             });
         }
 
@@ -383,7 +401,7 @@ class Game {
             }
         }
 
-        document.querySelectorAll('.quantity-btn').forEach(btn => {
+        document.querySelectorAll('.quantity-btn:not(#buyAllButton)').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const text = e.target.textContent.trim();
                 let amount;
@@ -433,14 +451,14 @@ class Game {
         });
     }
     // +++ НОВОЕ: универсальный проигрыватель одной ноты (используется всеми звуками) +++
-    
 
-    
+
+
 
 
 
     // +++ НОВОЕ: лёгкая искорка, всплывающая рядом с иконкой при клике +++
-    
+
 
     // +++ НОВОЕ: обработчик клика по иконке здания — просто приятная мелочь, на игру не влияет +++
     handleIconClick(event, iconEl) {
@@ -496,7 +514,7 @@ class Game {
     }
 
     // +++ НОВОЕ: маленькие частицы, разлетающиеся во все стороны при клике по фону +++
-   
+
 
     // +++ НОВОЕ: обработчик клика по фону страницы (мимо кнопок, иконок и т.д.) +++
     handleBackgroundClick(event) {
@@ -525,7 +543,7 @@ class Game {
     }
 
     // +++ НОВОЕ: страницы, вылетающие из открытого портфеля +++
-    
+
 
     // +++ НОВОЕ: звук открытия портфеля — лёгкий шорох бумаги + щелчок замка +++
     playBriefcaseSound() {
@@ -653,12 +671,12 @@ class Game {
             `+${formatNumber(expPercent)}% к опыту`;
     }
 
-    getGymLevel() { const gym=this.buildings.get('gym'); return gym?gym.level:0; }
-    isUpgradePurchased(id) { const u=this.upgrades.find(x=>x.id===id); return !!(u&&u.purchased); }
-    getCoffeePourDuration() { return this.isUpgradePurchased('coffeeMaster')?COFFEE_MASTER_POUR_DURATION:COFFEE_POUR_DURATION; }
-    getCoffeeStressReduction() { return COFFEE_STRESS_REDUCTION*(this.isUpgradePurchased('coffeeMaster')?(1+this.getGymLevel()*0.01):1); }
-    getCoffeeBuffStrengthMultiplier() { return this.isUpgradePurchased('coffeeMaster')?(1+this.getGymLevel()*COFFEE_BUFF_STRENGTH_PER_GYM_LEVEL):1; }
-    getCoffeeBuffDuration() { return BUFF_DURATION*(this.isUpgradePurchased('coffeeMaster')?(1+this.getGymLevel()*COFFEE_BUFF_DURATION_PER_GYM_LEVEL):1); }
+    getGymLevel() { const gym = this.buildings.get('gym'); return gym ? gym.level : 0; }
+    isUpgradePurchased(id) { const u = this.upgrades.find(x => x.id === id); return !!(u && u.purchased); }
+    getCoffeePourDuration() { return this.isUpgradePurchased('coffeeMaster') ? COFFEE_MASTER_POUR_DURATION : COFFEE_POUR_DURATION; }
+    getCoffeeStressReduction() { return COFFEE_STRESS_REDUCTION * (this.isUpgradePurchased('coffeeMaster') ? (1 + this.getGymLevel() * 0.01) : 1); }
+    getCoffeeBuffStrengthMultiplier() { return this.isUpgradePurchased('coffeeMaster') ? (1 + this.getGymLevel() * COFFEE_BUFF_STRENGTH_PER_GYM_LEVEL) : 1; }
+    getCoffeeBuffDuration() { return BUFF_DURATION * (this.isUpgradePurchased('coffeeMaster') ? (1 + this.getGymLevel() * COFFEE_BUFF_DURATION_PER_GYM_LEVEL) : 1); }
     getCoffeeIncomeMultiplier() {
         if (this.debuffActive) return DEBUFF_MALUS;
         if (this.buffLevel > 0) return 1 + this.buffLevel * 0.10 * this.getCoffeeBuffStrengthMultiplier();
@@ -666,7 +684,7 @@ class Game {
     }
     getPeaceIncomeMultiplier() {
         if (!this.isPeaceUnlocked()) return 1;
-        return 1+Math.max(0,Math.min(100,this.peace))*PEACE_INCOME_PER_PERCENT;
+        return 1 + Math.max(0, Math.min(100, this.peace)) * PEACE_INCOME_PER_PERCENT;
     }
     getEffectiveYogaLevel() {
         // Каждый уровень обычной йоги даёт +1% к базовой скорости,
@@ -675,10 +693,30 @@ class Game {
         const upgradeMultiplier = Math.pow(3, Math.max(0, this.yogaUpgradeLevel));
         return baseYogaEffect * upgradeMultiplier;
     }
-    getYogaPurchasePrice() { return YOGA_PURCHASE_BASE_COST*Math.pow(YOGA_PURCHASE_COST_MULT,this.yogaLevel); }
-    getYogaUpgradePrice() { return this.yogaLevel<=0?null:YOGA_PURCHASE_BASE_COST*YOGA_UPGRADE_COST_MULT*Math.pow(YOGA_PURCHASE_COST_MULT,this.yogaUpgradeLevel); }
-    hasYogaAccess() { return this.prestigeUpgradesPurchased.yogaAccess===true; }
+    getYogaPurchasePrice() { return YOGA_PURCHASE_BASE_COST * Math.pow(YOGA_PURCHASE_COST_MULT, this.yogaLevel); }
+    getYogaUpgradePrice() { return this.yogaLevel <= 0 ? null : YOGA_PURCHASE_BASE_COST * YOGA_UPGRADE_COST_MULT * Math.pow(YOGA_PURCHASE_COST_MULT, this.yogaUpgradeLevel); }
+    hasYogaAccess() { return this.prestigeUpgradesPurchased.yogaAccess === true; }
+    hasGovProcurement() { return this.prestigeUpgradesPurchased.govProcurement === true; }
     isPeaceUnlocked() { return this.hasYogaAccess() && this.yogaLevel > 0; }
+
+    // +++ НОВОЕ: массовая покупка занятий йоги (аналог Building.getBulkCost/getMaxAffordable) +++
+    getYogaBulkCost(quantity) {
+        const base = YOGA_PURCHASE_BASE_COST;
+        const mult = YOGA_PURCHASE_COST_MULT;
+        return Math.ceil(base * Math.pow(mult, this.yogaLevel) * ((Math.pow(mult, quantity) - 1) / (mult - 1)));
+    }
+
+    getMaxAffordableYoga() {
+        if (this.count < this.getYogaBulkCost(1)) return 0;
+        let max = 1;
+        while (this.getYogaBulkCost(max * 2) <= this.count && max < 100000) {
+            max *= 2;
+        }
+        while (this.getYogaBulkCost(max + 1) <= this.count && max < 100000) {
+            max++;
+        }
+        return max;
+    }
 
     getStressAccumulationMultiplier() {
         return this.debuffActive ? DEBUFF_STRESS_MULT : 1;
@@ -735,7 +773,7 @@ class Game {
             if (b.stats.clickPower) {
                 const sourceMult = b.getSourceMultiplier();
                 const base = b.level * b.stats.clickPower * sourceMult;
-                const contribution = base * careerInfo.clickMult * prestigeMult * this.cheat.click * coffeeMult * this.upgradeMultiplier * peaceMult * globalIncomeMult;
+                const contribution = base * careerInfo.clickMult * prestigeMult * this.cheat.click * coffeeMult * this.upgradeMultiplier * this.emergenceMultiplier * this.emergence2Multiplier * peaceMult * globalIncomeMult;
                 this.clickComponents[id] = contribution;
                 baseClickTotal += base;
             }
@@ -750,7 +788,7 @@ class Game {
             if (b.stats.cps) {
                 const sourceMult = b.getSourceMultiplier();
                 const base = b.level * b.stats.cps * sourceMult;
-                const contribution = base * careerInfo.clickMult * prestigeMult * this.cheat.passive * coffeeMult * this.upgradeMultiplier * peaceMult * globalIncomeMult;
+                const contribution = base * careerInfo.clickMult * prestigeMult * this.cheat.passive * coffeeMult * this.upgradeMultiplier * this.emergenceMultiplier * this.emergence2Multiplier * peaceMult * globalIncomeMult;
                 this.passiveComponents[id] = contribution;
                 totalBasePassive += base;
             }
@@ -773,18 +811,18 @@ class Game {
             this.careerLevel++;
         }
         if (this.careerLevel >= CAREERS.length - 1) {
-            this.experienceAfterMax += Math.max(0,this.experience);
-            this.experience=0;
+            this.experienceAfterMax += Math.max(0, this.experience);
+            this.experience = 0;
             if (this.experienceAfterMax >= this.experienceAfterMaxThreshold) {
                 this.globalIncomeMultiplier *= POST_MAX_INCOME_MULT;
-                this.experienceAfterMax=0;
+                this.experienceAfterMax = 0;
                 this.experienceAfterMaxThreshold *= POST_MAX_EXP_GROWTH;
             }
         }
     }
 
     // +++ НОВЫЙ МЕТОД: отображение всплывающего текста +++
-   
+
 
     // +++ ИЗМЕНЕНО: убран двойной штраф, добавлен вызов всплывающего текста +++
     handleClick(event) {
@@ -805,7 +843,7 @@ class Game {
         this.lastClickTime = now;
         this.coffeeStreak = 0;
         this.lastActionTime = now;
-        this.peace = Math.max(0,this.peace*PEACE_WORK_MULT);
+        this.peace = Math.max(0, this.peace * PEACE_WORK_MULT);
 
         if (this.stress >= 100) { this.updateUI(); return; }
 
@@ -813,6 +851,7 @@ class Game {
         const power = this.clickPower;
 
         this.count += power;
+        this.totalEarnedThisPrestige += power;
 
         // Опыт
         this.computeCoachMultiplier();
@@ -828,6 +867,16 @@ class Game {
         this.stress = Math.min(100, this.stress + stressGain);
         if (this.stress >= 100 && !this.hasReached100Stress) {
             this.hasReached100Stress = true;
+
+            // +++ НОВОЕ: уведомление о достижении предела стресса +++
+            notificationManager.notify({
+                id: 'stress-100',
+                once: true,
+                icon: '😵',
+                title: 'Предел возможностей',
+                sound: 'warning',
+                text: 'Стресс достиг 100%. Доход сильно упал. Выпейте кофе или дождитесь снижения стресса — теперь вам доступно улучшение «Стрессоустойчивость I».'
+            });
         }
 
         // Обновляем UI (пересчитывает clickPower для следующих кликов)
@@ -861,7 +910,22 @@ class Game {
         this.coffeePour = this.getCoffeePourDuration();
         this.lastActionTime = Date.now();
         this.coffeeStreak++;
-        if (this.coffeeStreak >= COFFEE_STREAK_REQUIRED) this.coffeeLoverAchievementUnlocked = true;
+        if (this.coffeeStreak >= COFFEE_STREAK_REQUIRED) {
+            const wasUnlocked = this.coffeeLoverAchievementUnlocked;
+            this.coffeeLoverAchievementUnlocked = true;
+
+            // +++ НОВОЕ: уведомление о новом достижении +++
+            if (!wasUnlocked) {
+                notificationManager.notify({
+                    id: 'achievement-coffee-lover',
+                    once: true,
+                    icon: '☕',
+                    title: 'Достижение: Любитель кофе',
+                    sound: 'success',
+                    text: 'Вы выпили 15 чашек кофе подряд без единого клика «Работать!». Открыт доступ к улучшению «Кофеман».'
+                });
+            }
+        }
         const coffeeStressReduction = this.getCoffeeStressReduction();
 
         // Если активен дебафф – только снижаем стресс
@@ -953,58 +1017,206 @@ class Game {
     }
 
     purchaseUpgradeItem(index) {
-        const upgrade=this.upgrades[index];
-        if(!upgrade||upgrade.purchased)return;
-        if(upgrade.prestige&&this.prestigePoints<=0){playInsufficientFundsSound();return;}
-        const canAfford=upgrade.currency==='kpi'?this.prestigePoints>=upgrade.price:this.count>=upgrade.price;
-        if(!canAfford){playInsufficientFundsSound();return;}
-        if(upgrade.currency==='kpi'){ this.prestigePoints-=upgrade.price; this.prestigeUpgradesPurchased[upgrade.id]=true; }
-        else this.count-=upgrade.price;
-        upgrade.purchased=true; upgrade.revealed=true;
-        if(!['emergence','stressResist1','emergence2','coach','eduDiscount','coffeeMaster','yogaAccess'].includes(upgrade.id)) this.upgradeMultiplier*=upgrade.multiplier;
+        const upgrade = this.upgrades[index];
+        if (!upgrade || upgrade.purchased) return;
+        if (upgrade.prestige && this.prestigePoints <= 0) { playInsufficientFundsSound(); return; }
+        const canAfford = upgrade.currency === 'kpi' ? this.prestigePoints >= upgrade.price : this.count >= upgrade.price;
+        if (!canAfford) { playInsufficientFundsSound(); return; }
+        if (upgrade.currency === 'kpi') { this.prestigePoints -= upgrade.price; this.prestigeUpgradesPurchased[upgrade.id] = true; }
+        else this.count -= upgrade.price;
+        upgrade.purchased = true; upgrade.revealed = true;
+        if (!['emergence', 'stressResist1', 'emergence2', 'coach', 'eduDiscount', 'coffeeMaster', 'yogaAccess', 'govProcurement'].includes(upgrade.id)) this.upgradeMultiplier *= upgrade.multiplier;
         playGeneralUpgradeSound(); this.updateUI(); saveGame(this);
     }
 
     purchaseYogaLesson() {
-        if(!this.hasYogaAccess())return;
-        const price=this.getYogaPurchasePrice();
-        if(this.count<price){playInsufficientFundsSound();return;}
-        this.count-=price; this.yogaLevel++; playGeneralUpgradeSound(); this.updateUI();
+        if (!this.hasYogaAccess()) return;
+
+        let quantity = this.buyAmount;
+        if (quantity === -1) {
+            quantity = this.getMaxAffordableYoga();
+            if (quantity === 0) { playInsufficientFundsSound(); return; }
+        }
+
+        const cost = this.getYogaBulkCost(quantity);
+        if (this.count >= cost) {
+            this.count -= cost;
+            this.yogaLevel += quantity;
+            playGeneralUpgradeSound();
+            this.updateUI();
+        } else {
+            playInsufficientFundsSound();
+        }
     }
 
     purchaseYogaUpgrade() {
-        if(!this.hasYogaAccess())return;
-        const price=this.getYogaUpgradePrice();
-        if(price===null||this.count<price){playInsufficientFundsSound();return;}
-        this.count-=price; this.yogaUpgradeLevel++; playGeneralUpgradeSound(); this.updateUI();
+        if (!this.hasYogaAccess()) return;
+        const price = this.getYogaUpgradePrice();
+        if (price === null || this.count < price) { playInsufficientFundsSound(); return; }
+        this.count -= price; this.yogaUpgradeLevel++; playGeneralUpgradeSound(); this.updateUI();
+    }
+
+    // +++ НОВОЕ: «Госзакупка» — скупает всё доступное (здания, их улучшения, занятия йоги) на весь баланс +++
+    buyMaxEverything() {
+        if (!this.hasGovProcurement()) return;
+
+        let anyPurchase = false;
+        let changedOverall = true;
+        let outerIterations = 0;
+
+        while (changedOverall && outerIterations < 200) {
+            changedOverall = false;
+            outerIterations++;
+
+            // Собираем всех кандидатов на покупку с ценой их "следующего шага"
+            const candidates = [];
+
+            for (const b of this.buildings.values()) {
+                const levelCost = b.getBulkCost(1);
+                if (this.count >= levelCost) {
+                    candidates.push({ price: levelCost, type: 'buildingLevel', building: b });
+                }
+
+                if (b.stats.hobbyUpgrade) {
+                    const price = b.getHobbyUpgradePrice();
+                    if (price !== null && this.count >= price) {
+                        candidates.push({ price, type: 'hobbyUpgrade', building: b });
+                    }
+                } else if (b.stats.upgradeType) {
+                    const next = b.getUpgradeData(b.upgradeLevel + 1);
+                    if (next && next.available && this.count >= next.price) {
+                        candidates.push({ price: next.price, type: 'buildingUpgrade', building: b });
+                    }
+                }
+            }
+
+            if (this.hasYogaAccess()) {
+                const lessonCost = this.getYogaBulkCost(1);
+                if (this.count >= lessonCost) {
+                    candidates.push({ price: lessonCost, type: 'yogaLesson' });
+                }
+                const upgradeCost = this.getYogaUpgradePrice();
+                if (upgradeCost !== null && this.count >= upgradeCost) {
+                    candidates.push({ price: upgradeCost, type: 'yogaUpgrade' });
+                }
+            }
+
+            if (candidates.length === 0) break;
+
+            // Сначала самое дорогое, а на сдачу — остальное по убыванию цены
+            candidates.sort((a, b) => b.price - a.price);
+
+            for (const c of candidates) {
+                if (c.type === 'buildingLevel') {
+                    const b = c.building;
+                    const maxQty = b.getMaxAffordable(this.count);
+                    if (maxQty > 0) {
+                        const cost = b.getBulkCost(maxQty);
+                        if (this.count >= cost) {
+                            this.count -= cost;
+                            b.level += maxQty;
+                            changedOverall = true; anyPurchase = true;
+                        }
+                    }
+                } else if (c.type === 'hobbyUpgrade') {
+                    const b = c.building;
+                    let price = b.getHobbyUpgradePrice();
+                    while (price !== null && this.count >= price) {
+                        this.count -= price;
+                        b.upgradeLevel++;
+                        changedOverall = true; anyPurchase = true;
+                        price = b.getHobbyUpgradePrice();
+                    }
+                } else if (c.type === 'buildingUpgrade') {
+                    const b = c.building;
+                    let next = b.getUpgradeData(b.upgradeLevel + 1);
+                    while (next && next.available && this.count >= next.price) {
+                        this.count -= next.price;
+                        b.upgradeLevel++;
+                        changedOverall = true; anyPurchase = true;
+                        next = b.getUpgradeData(b.upgradeLevel + 1);
+                    }
+                } else if (c.type === 'yogaLesson') {
+                    const maxYoga = this.getMaxAffordableYoga();
+                    if (maxYoga > 0) {
+                        const cost = this.getYogaBulkCost(maxYoga);
+                        if (this.count >= cost) {
+                            this.count -= cost;
+                            this.yogaLevel += maxYoga;
+                            changedOverall = true; anyPurchase = true;
+                        }
+                    }
+                } else if (c.type === 'yogaUpgrade') {
+                    let upPrice = this.getYogaUpgradePrice();
+                    while (upPrice !== null && this.count >= upPrice) {
+                        this.count -= upPrice;
+                        this.yogaUpgradeLevel++;
+                        changedOverall = true; anyPurchase = true;
+                        upPrice = this.getYogaUpgradePrice();
+                    }
+                }
+            }
+        }
+
+        if (anyPurchase) {
+            playBuyBuildingSound();
+            this.updateUI();
+            saveGame(this);
+        } else {
+            playInsufficientFundsSound();
+        }
     }
 
     updatePeace(delta) {
-        if(this.getEffectiveYogaLevel()<=0)return;
-        const idleSeconds=Math.max(0,(Date.now()-this.lastActionTime)/1000);
-        if(idleSeconds<60)return;
+        if (this.getEffectiveYogaLevel() <= 0) return;
+        const idleSeconds = Math.max(0, (Date.now() - this.lastActionTime) / 1000);
+        if (idleSeconds < 60) return;
         const yogaEffectLevels = this.getEffectiveYogaLevel();
-        const speedMultiplier=1+yogaEffectLevels*YOGA_PEACE_SPEED_PER_LEVEL;
-        this.peace=Math.min(100,this.peace+PEACE_PER_SECOND*speedMultiplier*delta);
+        const speedMultiplier = 1 + yogaEffectLevels * YOGA_PEACE_SPEED_PER_LEVEL;
+        this.peace = Math.min(100, this.peace + PEACE_PER_SECOND * speedMultiplier * delta);
     }
 
     prestige() {
-        if (this.careerLevel < CAREERS.length - 1 || this.count < PRESTIGE_COST_PER_SHARE) {
+        if (this.careerLevel < CAREERS.length - 1 || this.totalEarnedThisPrestige < PRESTIGE_COST_PER_SHARE) {
             playInsufficientFundsSound();
             return;
         }
 
-        const earned = Math.floor((1.01 * Math.cbrt(this.count) * (Math.log10(this.count))) / (120000 + (this.count ** (1 / 6))));
-        if (earned > 0) {
-            this.prestigePoints += earned;
-        }
+        const base = this.totalEarnedThisPrestige;
+        const earned = Math.floor((1.01 * Math.cbrt(base) * (Math.log10(base))) / (1200000 + (base ** (1 / 6))));
 
-        this.reset();
-        saveGame(this); // сохраняем сразу после престижа
+        // +++ НОВОЕ: уведомление перед сбросом, показывается один раз +++
+        const doPrestige = () => {
+            if (earned > 0) {
+                this.prestigePoints += earned;
+            }
+            this.reset();
+            saveGame(this);
+        };
+
+        notificationManager.notify({
+            id: 'prestige-first',
+            once: true,
+            icon: '🚀',
+            title: 'Основание корпорации',
+            sound: 'success',
+            text: `Вы собираетесь обнулить текущий прогресс и получить <strong>${formatNumber(earned)} KPI</strong>.<br>` +
+                `Здания, баланс, стресс и опыт будут сброшены. Улучшения мастерства (кроме престижных) и достижения сохранятся.`,
+            buttons: [
+                { text: 'Отмена', onClick: () => { } },
+                { text: 'Основать корпорацию', primary: true, onClick: doPrestige }
+            ]
+        });
+
+        // Если уведомление уже было показано ранее — выполняем престиж сразу
+        if (notificationManager.hasShown('prestige-first')) {
+            doPrestige();
+        }
     }
 
     reset() {
         this.count = 0;
+        this.totalEarnedThisPrestige = 0;
         this.stress = 0;
         this.experience = 0;
         this.careerLevel = 0;
@@ -1023,8 +1235,8 @@ class Game {
         this.debuffTimer = 0;
         this.upgradeMultiplier = 1;
         this.upgrades.forEach(u => {
-            if(u.prestige){ u.purchased=!!this.prestigeUpgradesPurchased[u.id]; u.revealed=this.prestigePoints>0; }
-            else { u.purchased=false; u.revealed=false; }
+            if (u.prestige) { u.purchased = !!this.prestigeUpgradesPurchased[u.id]; u.revealed = this.prestigePoints > 0; }
+            else { u.purchased = false; u.revealed = false; }
         });
 
         for (const b of this.buildings.values()) {
@@ -1041,30 +1253,30 @@ class Game {
 
     // +++ НОВОЕ: полный сброс, включая престиж — используется при удалении сохранения +++
     hardReset() {
-        this.prestigePoints=0;
-        this.prestigeUnlocked=false;
-        this.prestigeUpgradesPurchased={};
-        this.coffeeLoverAchievementUnlocked=false;
-        this.globalIncomeMultiplier=1;
+        this.prestigePoints = 0;
+        this.prestigeUnlocked = false;
+        this.prestigeUpgradesPurchased = {};
+        this.coffeeLoverAchievementUnlocked = false;
+        this.globalIncomeMultiplier = 1;
         this.reset();
     }
 
     // +++ НОВОЕ: собираем данные для сохранения (только долгосрочный прогресс) +++
-   
+
 
     // +++ НОВОЕ: применяем загруженные данные к текущей игре +++
     // Короткоживущие эффекты (баффы/дебаффы/налив кофе/блокировка стресса) намеренно
     // не сохраняются — они привязаны к текущей сессии и сбрасываются на старте.
-    
+
 
     // +++ НОВОЕ: сохранение в localStorage +++
-   
+
 
     // +++ НОВОЕ: загрузка из localStorage. Возвращает true, если сохранение было найдено +++
-    
+
 
     // +++ НОВОЕ: удаление сохранения +++
-    
+
 
     // +++ НОВОЕ: обновление текста статуса сохранения +++
 
@@ -1110,8 +1322,12 @@ class Game {
             percent = (this.debuffTimer / DEBUFF_DURATION) * 100;
             visible = true;
         } else if (this.buffLevel > 0) {
-            const bonusPercent = this.buffLevel * 10;
-            label = `✅ +${bonusPercent}% дохода`;
+            const perStackPercent = 10 * this.getCoffeeBuffStrengthMultiplier();
+            const bonusPercent = this.buffLevel * perStackPercent;
+            const perStackLabel = Number.isInteger(perStackPercent)
+                ? `${perStackPercent}`
+                : `${Math.round(perStackPercent * 10) / 10}`;
+            label = `✅ +${bonusPercent}% дохода (${perStackLabel}% за стак)`;
             fillColor = '#4caf50';
             percent = (this.buffTimer / this.getCoffeeBuffDuration()) * 100;
             visible = true;
@@ -1132,26 +1348,26 @@ class Game {
 
     // +++ НОВОЕ: обновление шкалы опыта карьеры +++
     updateExpBar() {
-        const nextExp=CAREERS[this.careerLevel].nextExp;
-        if(isNaN(nextExp)){
-            if(this.dom.expFill)this.dom.expFill.style.width='100%';
-            if(this.dom.expBarLabel)this.dom.expBarLabel.textContent='MAX — Директор филиала';
+        const nextExp = CAREERS[this.careerLevel].nextExp;
+        if (isNaN(nextExp)) {
+            if (this.dom.expFill) this.dom.expFill.style.width = '100%';
+            if (this.dom.expBarLabel) this.dom.expBarLabel.textContent = 'MAX — Директор филиала';
             this.updatePostMaxExpBar(); return;
         }
-        const pct=nextExp>0?Math.max(0,Math.min(100,this.experience/nextExp*100)):0;
-        if(this.dom.expFill)this.dom.expFill.style.width=pct+'%';
-        if(this.dom.expBarLabel)this.dom.expBarLabel.textContent=`${formatNumber(Math.floor(this.experience))} / ${formatNumber(nextExp)}`;
+        const pct = nextExp > 0 ? Math.max(0, Math.min(100, this.experience / nextExp * 100)) : 0;
+        if (this.dom.expFill) this.dom.expFill.style.width = pct + '%';
+        if (this.dom.expBarLabel) this.dom.expBarLabel.textContent = `${formatNumber(Math.floor(this.experience))} / ${formatNumber(nextExp)}`;
         this.updatePostMaxExpBar();
     }
 
     updatePostMaxExpBar() {
-        const isMax=this.careerLevel>=CAREERS.length-1;
-        if(!this.dom.postMaxExpBar)return;
-        this.dom.postMaxExpBar.style.display=isMax?'block':'none';
-        if(!isMax)return;
-        const pct=this.experienceAfterMaxThreshold>0?Math.max(0,Math.min(100,this.experienceAfterMax/this.experienceAfterMaxThreshold*100)):0;
-        if(this.dom.postMaxExpFill)this.dom.postMaxExpFill.style.width=pct+'%';
-        if(this.dom.postMaxExpBarLabel)this.dom.postMaxExpBarLabel.textContent=`После максимума: ${formatNumber(Math.floor(this.experienceAfterMax))} / ${formatNumber(this.experienceAfterMaxThreshold)}`;
+        const isMax = this.careerLevel >= CAREERS.length - 1;
+        if (!this.dom.postMaxExpBar) return;
+        this.dom.postMaxExpBar.style.display = isMax ? 'block' : 'none';
+        if (!isMax) return;
+        const pct = this.experienceAfterMaxThreshold > 0 ? Math.max(0, Math.min(100, this.experienceAfterMax / this.experienceAfterMaxThreshold * 100)) : 0;
+        if (this.dom.postMaxExpFill) this.dom.postMaxExpFill.style.width = pct + '%';
+        if (this.dom.postMaxExpBarLabel) this.dom.postMaxExpBarLabel.textContent = `После максимума: ${formatNumber(Math.floor(this.experienceAfterMax))} / ${formatNumber(this.experienceAfterMaxThreshold)}`;
     }
 
     updatePeaceUI() {
@@ -1161,31 +1377,68 @@ class Game {
         if (this.dom.peaceHint) this.dom.peaceHint.style.display = unlocked ? '' : 'none';
         if (!unlocked) return;
 
-        const peace=Math.max(0,Math.min(100,this.peace));
-        if(this.dom.peaceValue)this.dom.peaceValue.textContent=peace.toFixed(1);
-        if(this.dom.peaceFill)this.dom.peaceFill.style.width=peace+'%';
+        const peace = Math.max(0, Math.min(100, this.peace));
+        if (this.dom.peaceValue) this.dom.peaceValue.textContent = peace.toFixed(1);
+        if (this.dom.peaceFill) this.dom.peaceFill.style.width = peace + '%';
 
-        const idleSeconds=Math.max(0,(Date.now()-this.lastActionTime)/1000);
-        const remaining=Math.max(0,60-idleSeconds);
-        if(this.dom.peaceHint){
-            if(remaining>0)this.dom.peaceHint.textContent=`Покой начнёт расти через ${Math.ceil(remaining)}с без действий. Бонус дохода: +${formatNumber(peace*3)}%.`;
-            else this.dom.peaceHint.textContent=`Покой восстанавливается. Бонус дохода: +${formatNumber(peace*3)}%.`;
+        const idleSeconds = Math.max(0, (Date.now() - this.lastActionTime) / 1000);
+        const remaining = Math.max(0, 60 - idleSeconds);
+        if (this.dom.peaceHint) {
+            if (remaining > 0) this.dom.peaceHint.textContent = `Покой начнёт расти через ${Math.ceil(remaining)}с без действий. Бонус дохода: +${formatNumber(peace * 3)}%.`;
+            else this.dom.peaceHint.textContent = `Покой восстанавливается. Бонус дохода: +${formatNumber(peace * 3)}%.`;
         }
     }
 
     updateYogaUI() {
-        const visible=this.hasYogaAccess();
-        if(this.dom.yogaShop)this.dom.yogaShop.style.display=visible?'flex':'none';
-        if(!visible)return;
-        const purchasePrice=this.getYogaPurchasePrice();
-        const upgradePrice=this.getYogaUpgradePrice();
-        if(this.dom.yogaLvl)this.dom.yogaLvl.textContent=this.yogaLevel;
-        if(this.dom.yogaCost)this.dom.yogaCost.textContent=formatNumber(purchasePrice);
-        if(this.dom.yogaBuyPrice)this.dom.yogaBuyPrice.textContent=formatNumber(purchasePrice);
-        if(this.dom.yogaUpgradeLvl)this.dom.yogaUpgradeLvl.textContent=this.yogaUpgradeLevel;
-        if(this.dom.yogaUpgradePrice)this.dom.yogaUpgradePrice.textContent=upgradePrice===null?'—':formatNumber(upgradePrice);
-        if(this.dom.buyYogaButton)this.dom.buyYogaButton.disabled=this.count<purchasePrice;
-        if(this.dom.upgradeYogaButton)this.dom.upgradeYogaButton.disabled=upgradePrice===null||this.count<upgradePrice;
+        const visible = this.hasYogaAccess();
+        if (this.dom.yogaShop) this.dom.yogaShop.style.display = visible ? 'flex' : 'none';
+        if (this.dom.buyAllButton) this.dom.buyAllButton.style.display = this.hasGovProcurement() ? '' : 'none';
+        if (!visible) return;
+
+        if (this.dom.yogaLvl) this.dom.yogaLvl.textContent = this.yogaLevel;
+
+        // Иконка красится по уровню улучшения йоги, как у зала/курсов
+        const iconColor = this.yogaUpgradeLevel === 0 ? 'gray' : UPGRADE_COLORS[(this.yogaUpgradeLevel - 1) % UPGRADE_COLORS.length];
+        if (this.dom.yogaIcon) this.dom.yogaIcon.style.backgroundColor = iconColor;
+
+        let displayQuantity = this.buyAmount;
+        let displayCost;
+        let disabled;
+        if (this.buyAmount === -1) {
+            displayQuantity = this.getMaxAffordableYoga();
+            if (displayQuantity === 0) {
+                displayCost = this.getYogaBulkCost(1);
+                disabled = true;
+            } else {
+                displayCost = this.getYogaBulkCost(displayQuantity);
+                disabled = this.count < displayCost;
+            }
+        } else {
+            displayCost = this.getYogaBulkCost(this.buyAmount);
+            disabled = this.count < displayCost;
+        }
+
+        if (this.dom.yogaCost) this.dom.yogaCost.textContent = formatNumber(displayCost);
+
+        if (this.dom.buyYogaButton) {
+            let btnText;
+            if (this.buyAmount === -1) {
+                btnText = displayQuantity > 0
+                    ? `Занятие макс (${displayQuantity}) (Цена: ${formatNumber(displayCost)})`
+                    : `Занятие макс (0) (Цена за 1: ${formatNumber(displayCost)})`;
+            } else if (this.buyAmount === 1) {
+                btnText = `Занятие (${formatNumber(displayCost)})`;
+            } else {
+                btnText = `Занятие x${this.buyAmount} (${formatNumber(displayCost)})`;
+            }
+            this.dom.buyYogaButton.innerHTML = btnText;
+            this.dom.buyYogaButton.disabled = disabled;
+        }
+
+        const upgradePrice = this.getYogaUpgradePrice();
+        if (this.dom.yogaUpgradeLvl) this.dom.yogaUpgradeLvl.textContent = this.yogaUpgradeLevel;
+        if (this.dom.yogaUpgradePrice) this.dom.yogaUpgradePrice.textContent = upgradePrice === null ? '—' : formatNumber(upgradePrice);
+        if (this.dom.upgradeYogaButton) this.dom.upgradeYogaButton.disabled = upgradePrice === null || this.count < upgradePrice;
     }
 
     // +++ НОВОЕ: обновление визуала "наливающейся" чашки кофе +++
@@ -1323,6 +1576,13 @@ class Game {
             if (!b.dom.shop) continue;
             if (b.stats.alwaysVisible) {
                 b.dom.shop.style.display = 'flex';
+            } else if (b.id === 'dataCenter') {
+                // Дата-центр открывается при накоплении 10 Qa (10e15)
+                if (b.level > 0 || this.count >= 10e15) {
+                    b.dom.shop.style.display = 'flex';
+                } else {
+                    b.dom.shop.style.display = 'none';
+                }
             } else {
                 const costOne = b.getBulkCost(1);
                 if (b.level > 0 || this.count >= costOne * 0.1) {
@@ -1367,8 +1627,9 @@ class Game {
             this.updateExpBar();
             this.updatePeaceUI();
             this.updateYogaUI();
-            if(this.dom.globalIncomeDisplay)this.dom.globalIncomeDisplay.textContent=this.isPeaceUnlocked() ? `Глобальный доход: ×${formatNumber(this.globalIncomeMultiplier)} · Покой +${formatNumber(this.peace*3)}%` : `Глобальный доход: ×${formatNumber(this.globalIncomeMultiplier)}`;
+            if (this.dom.globalIncomeDisplay) this.dom.globalIncomeDisplay.textContent = this.isPeaceUnlocked() ? `Глобальный доход: ×${formatNumber(this.globalIncomeMultiplier)} · Покой +${formatNumber(this.peace * 3)}%` : `Глобальный доход: ×${formatNumber(this.globalIncomeMultiplier)}`;
             this.dom.prestigePoints.textContent = formatNumber(this.prestigePoints);
+            this.updateMasteryTabs();
 
             this.updateCoffeeEffect();
 
@@ -1388,9 +1649,10 @@ class Game {
             this.dom.coffeeCostText.textContent = formatNumber(this.coffeeCost);
             this.updateCoffeeCup();
 
-            const canPrestige = this.careerLevel >= CAREERS.length - 1 && this.count >= PRESTIGE_COST_PER_SHARE;
+            const canPrestige = this.careerLevel >= CAREERS.length - 1 && this.totalEarnedThisPrestige >= PRESTIGE_COST_PER_SHARE;
             this.dom.prestigeButton.disabled = !canPrestige;
-            const shares = Math.floor((1.01 * Math.cbrt(this.count) * (Math.log10(this.count))) / (120000 + (this.count ** (1 / 6))));
+            const base = Math.max(0, this.totalEarnedThisPrestige);
+            const shares = base > 0 ? Math.floor((1.01 * Math.cbrt(base) * (Math.log10(base))) / (1200000 + (base ** (1 / 6)))) : 0;
             const requiredCareerTitle = CAREERS[CAREERS.length - 1].title;
             this.dom.prestigeInfo.textContent = `Требуется должность: ${requiredCareerTitle}. Сейчас вы получите ${formatNumber(shares)} KPI.`;
 
@@ -1451,7 +1713,9 @@ class Game {
 
             if (this.stress < 100) {
                 // passiveIncome уже включает штраф от стресса
-                this.count += this.passiveIncome * delta;
+                const earned = this.passiveIncome * delta;
+                this.count += earned;
+                this.totalEarnedThisPrestige += earned;
             }
 
             this.updateStress(delta);
@@ -1493,31 +1757,68 @@ class Game {
 // ================================================================
 
 // Карточки глобальных улучшений в стиле достижений.
-Game.prototype.createUpgradeElements=function(){
-    const container=this.dom.upgradesContainer; if(!container)return;
-    container.innerHTML=''; this.upgradeElements=[];
-    this.upgrades.forEach((u,index)=>{
-        const card=document.createElement('article');
-        card.className=`mastery-card${u.prestige?' prestige-card':''}`;
-        card.dataset.id=u.id; card.dataset.index=index;
-        card.innerHTML=`<div class="mastery-card-icon">${u.icon}</div><div class="mastery-card-content"><span class="mastery-card-tag" data-prestige-tag>${u.prestige?'[Престиж]':''}</span><div class="mastery-card-title">${u.name}</div><div class="mastery-card-description">${u.description}</div><div class="mastery-card-effect" data-effect></div></div><div class="mastery-card-footer"><span class="mastery-card-price" data-price></span><button class="mastery-buy-btn" type="button" data-buy>Купить</button></div>`;
-        card.querySelector('[data-buy]').addEventListener('click',e=>{e.stopPropagation();card.classList.add('pressed');setTimeout(()=>card.classList.remove('pressed'),180);this.purchaseUpgradeItem(index);});
-        container.appendChild(card); this.upgradeElements.push(card);
+Game.prototype.updateMasteryTabs = function () {
+    const prestigeUnlocked = this.prestigePoints > 0;
+    if (!prestigeUnlocked && this.masteryTab === 'prestige') this.masteryTab = 'cycle';
+
+    document.querySelectorAll('.mastery-tab').forEach(btn => {
+        const tab = btn.dataset.masteryTab;
+        btn.classList.toggle('active', tab === this.masteryTab);
+        if (tab === 'prestige') {
+            btn.style.display = prestigeUnlocked ? '' : 'none';
+        }
     });
+
+    if (this.dom.upgradesContainer) {
+        this.dom.upgradesContainer.style.display = this.masteryTab === 'cycle' ? 'contents' : 'none';
+    }
+    if (this.dom.prestigeUpgradesContainer) {
+        this.dom.prestigeUpgradesContainer.style.display = this.masteryTab === 'prestige' ? 'contents' : 'none';
+    }
 };
 
-Game.prototype.canAffordUpgrade=function(u){return u.currency==='kpi'?this.prestigePoints>=u.price:this.count>=u.price;};
-Game.prototype.updateUpgradeElements=function(){
-    this.upgrades.forEach((u,index)=>{
-        const el=this.upgradeElements[index]; if(!el)return;
-        const unlocked=u.prestige?this.prestigePoints>0:(u.revealed||!u.unlockCondition||u.unlockCondition(this));
-        if(unlocked)u.revealed=true;
-        el.style.display=unlocked?'':'none'; el.classList.toggle('purchased',u.purchased); el.classList.toggle('unaffordable',!u.purchased&&!this.canAffordUpgrade(u));
-        const tag=el.querySelector('[data-prestige-tag]'),price=el.querySelector('[data-price]'),effect=el.querySelector('[data-effect]'),buy=el.querySelector('[data-buy]');
-        if(tag)tag.style.display=u.prestige?'inline-block':'none';
-        if(u.purchased){price.textContent='✓ Куплено';buy.textContent='Куплено';buy.disabled=true;effect.textContent=u.effectText?`Сейчас: ${u.effectText(this)}`:'Способность активна';}
-        else{price.textContent=`Цена: ${formatNumber(u.price)} ${u.currency==='kpi'?'KPI':'монет'}`;buy.textContent='Купить';buy.disabled=!this.canAffordUpgrade(u);effect.textContent=u.prestige?'Престижное улучшение — сохраняется после престижа.':'';}
+Game.prototype.createUpgradeElements = function () {
+    const cycleContainer = this.dom.upgradesContainer;
+    const prestigeContainer = this.dom.prestigeUpgradesContainer;
+    if (!cycleContainer || !prestigeContainer) return;
+
+    cycleContainer.innerHTML = '';
+    prestigeContainer.innerHTML = '';
+    this.upgradeElements = [];
+
+    const renderUpgrade = (u, index, target) => {
+        const card = document.createElement('article');
+        card.className = `mastery-card${u.prestige ? ' prestige-card' : ''}`;
+        card.dataset.id = u.id; card.dataset.index = index;
+        card.innerHTML = `<div class="mastery-card-icon">${u.icon}</div><div class="mastery-card-content"><span class="mastery-card-tag" data-prestige-tag>${u.prestige ? '[Престиж]' : ''}</span><div class="mastery-card-title">${u.name}</div><div class="mastery-card-description">${u.description}</div><div class="mastery-card-effect" data-effect></div></div><div class="mastery-card-footer"><span class="mastery-card-price" data-price></span><button class="mastery-buy-btn" type="button" data-buy>Купить</button></div>`;
+        card.querySelector('[data-buy]').addEventListener('click', e => { e.stopPropagation(); card.classList.add('pressed'); setTimeout(() => card.classList.remove('pressed'), 180); this.purchaseUpgradeItem(index); });
+        target.appendChild(card);
+        this.upgradeElements[index] = card;
+    };
+
+    this.upgrades.forEach((u, index) => {
+        renderUpgrade(u, index, u.prestige ? prestigeContainer : cycleContainer);
     });
+    this.updateMasteryTabs();
+};
+
+Game.prototype.canAffordUpgrade = function (u) { return u.currency === 'kpi' ? this.prestigePoints >= u.price : this.count >= u.price; };
+Game.prototype.updateUpgradeElements = function () {
+    this.upgrades.forEach((u, index) => {
+        const el = this.upgradeElements[index]; if (!el) return;
+        const unlocked = u.prestige ? this.prestigePoints > 0 : (u.revealed || !u.unlockCondition || u.unlockCondition(this));
+        if (unlocked) u.revealed = true;
+        const currentTab = u.prestige ? 'prestige' : 'cycle';
+        const visible = unlocked && currentTab === this.masteryTab;
+        el.style.display = visible ? '' : 'none';
+        el.classList.toggle('purchased', u.purchased);
+        el.classList.toggle('unaffordable', !u.purchased && !this.canAffordUpgrade(u));
+        const tag = el.querySelector('[data-prestige-tag]'), price = el.querySelector('[data-price]'), effect = el.querySelector('[data-effect]'), buy = el.querySelector('[data-buy]');
+        if (tag) tag.style.display = u.prestige ? 'inline-block' : 'none';
+        if (u.purchased) { price.textContent = '✓ Куплено'; buy.textContent = 'Куплено'; buy.disabled = true; effect.textContent = u.effectText ? `Сейчас: ${u.effectText(this)}` : 'Способность активна'; }
+        else { price.textContent = `Цена: ${formatNumber(u.price)} ${u.currency === 'kpi' ? 'KPI' : 'монет'}`; buy.textContent = 'Купить'; buy.disabled = !this.canAffordUpgrade(u); effect.textContent = u.prestige ? 'Престижное улучшение — сохраняется после престижа.' : ''; }
+    });
+    this.updateMasteryTabs();
 };
 
 function initShopSectionsUI() {
@@ -1530,6 +1831,18 @@ function initShopSectionsUI() {
         container.classList.add('section-open');
         tabs.forEach(t => t.classList.toggle('active', t.dataset.shopSection === id));
         panels.forEach(p => p.classList.toggle('active', p.dataset.shopSectionPanel === id));
+
+        // +++ НОВОЕ: уведомление при первом открытии вкладки «Мастерство» +++
+        if (id === 'mastery') {
+            notificationManager.notify({
+                id: 'mastery-tab-first-open',
+                once: true,
+                icon: '✨',
+                title: 'Раздел «Мастерство»',
+                sound: 'info',
+                text: 'Здесь появляются постоянные улучшения — они открываются по мере роста бизнеса и остаются активными до конца текущего цикла (а престижные — навсегда).'
+            });
+        }
     };
     const close = () => {
         container.classList.remove('section-open');
@@ -1551,13 +1864,13 @@ function initAchievementsUI(game) {
     if (!modal || !list || !button) return;
 
     const achievements = [
-        { icon:'👣', name:'Первый шаг', description:'Нажать кнопку «Работать!» хотя бы один раз.', check:g => g.count > 0 || g.experience > 0 },
-        { icon:'💼', name:'Карьерист', description:'Получить должность не ниже менеджера.', check:g => g.careerLevel >= 3 },
-        { icon:'👥', name:'Начальник', description:'Купить хотя бы одну единицу пассивного дохода.', check:g => ['staff','auto','robot','ai','processing','office'].some(id => (g.buildings.get(id)?.level || 0) > 0) },
-        { icon:'😵', name:'Предел возможностей', description:'Достичь 100% стресса.', check:g => g.hasReached100Stress === true },
-        { icon:'✨', name:'Мастер своего дела', description:'Купить хотя бы одно улучшение Мастерства.', check:g => g.upgrades.some(u => u.purchased) },
-        { icon:'🚀', name:'Корпорация', description:'Совершить престиж.', check:g => g.prestigePoints > 0 },
-        { icon:'☕', name:'Любитель кофе', description:'Выпить 15 чашек кофе подряд без кликов «Работать!».', check:g => g.coffeeLoverAchievementUnlocked === true || g.coffeeStreak >= COFFEE_STREAK_REQUIRED },
+        { icon: '👣', name: 'Первый шаг', description: 'Нажать кнопку «Работать!» хотя бы один раз.', check: g => g.count > 0 || g.experience > 0 },
+        { icon: '💼', name: 'Карьерист', description: 'Получить должность не ниже менеджера.', check: g => g.careerLevel >= 3 },
+        { icon: '👥', name: 'Начальник', description: 'Купить хотя бы одну единицу пассивного дохода.', check: g => ['staff', 'auto', 'robot', 'ai', 'processing', 'office'].some(id => (g.buildings.get(id)?.level || 0) > 0) },
+        { icon: '😵', name: 'Предел возможностей', description: 'Достичь 100% стресса.', check: g => g.hasReached100Stress === true },
+        { icon: '✨', name: 'Мастер своего дела', description: 'Купить хотя бы одно улучшение Мастерства.', check: g => g.upgrades.some(u => u.purchased) },
+        { icon: '🚀', name: 'Корпорация', description: 'Совершить престиж.', check: g => g.prestigePoints > 0 },
+        { icon: '☕', name: 'Любитель кофе', description: 'Выпить 15 чашек кофе подряд без кликов «Работать!».', check: g => g.coffeeLoverAchievementUnlocked === true || g.coffeeStreak >= COFFEE_STREAK_REQUIRED },
     ];
 
     list.innerHTML = '';
@@ -1569,16 +1882,46 @@ function initAchievementsUI(game) {
         return el;
     });
 
+    let achievementsInitialized = false;
+    const previousStates = new Map();
+
     const refresh = () => {
         let unlocked = 0;
-        achievements.forEach((a, i) => {
-            const done = !!a.check(game);
-            if (done) unlocked++;
-            els[i].classList.toggle('unlocked', done);
-            els[i].classList.toggle('locked', !done);
-            els[i].querySelector('.achievement-status').textContent = done ? '✓' : '🔒';
+
+        achievements.forEach((achievement, index) => {
+            const done = !!achievement.check(game);
+            const key = achievement.name;
+            const wasDone = previousStates.get(key) === true;
+
+            if (done) {
+                unlocked++;
+            }
+
+            // Toast появляется только в момент получения достижения,
+            // а не при каждой проверке состояния.
+            if (achievementsInitialized && done && !wasDone) {
+                playAchievementSound();
+                showToast({
+                    icon: achievement.icon,
+                    text: `Достижение получено: ${achievement.name}`,
+                    type: 'success',
+                    duration: 3500
+                });
+            }
+
+            previousStates.set(key, done);
+
+            els[index].classList.toggle('unlocked', done);
+            els[index].classList.toggle('locked', !done);
+
+            const status = els[index].querySelector('.achievement-status');
+            if (status) {
+                status.textContent = done ? '✓' : '🔒';
+            }
         });
+
         progress.textContent = `${unlocked} / ${achievements.length}`;
+        achievementsInitialized = true;
     };
 
     const setOpen = (value) => {
@@ -1590,6 +1933,7 @@ function initAchievementsUI(game) {
     close?.addEventListener('click', () => setOpen(false));
     modal.addEventListener('click', e => { if (e.target.matches('[data-close-achievements]')) setOpen(false); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
+    refresh();
     setInterval(refresh, 500);
 }
 

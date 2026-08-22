@@ -146,3 +146,13 @@ function playOfflineEarningsSound() {
         playTone(1046.50, 0.16, 'triangle', 0.11, 0.27);
     } catch (e) {}
 }
+function playAchievementSound() {
+    try {
+        playTone(523.25, 0.10, 'triangle', 0.10, 0);
+        playTone(659.25, 0.10, 'triangle', 0.10, 0.08);
+        playTone(783.99, 0.12, 'triangle', 0.10, 0.16);
+        playTone(1046.50, 0.18, 'triangle', 0.12, 0.25);
+    } catch (e) {
+        // Звук не должен ломать игру
+    }
+}
